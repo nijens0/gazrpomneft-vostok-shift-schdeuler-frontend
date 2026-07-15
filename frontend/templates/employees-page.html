@@ -1,0 +1,69 @@
+<section class="page">
+    <section class="toolbar">
+        <div class="search-wrapper"><input class="search" type="search" placeholder="Поиск по ФИО/ ТАБ. №"
+                                           aria-label="Поиск сотрудников"/>
+            <svg class="toolbar-icon search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
+                 xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 14L11.1067 11.1067" stroke="#94A3B8" stroke-width="1.33333" stroke-linecap="round"
+                      stroke-linejoin="round"/>
+                <path d="M7.33333 12.6667C10.2789 12.6667 12.6667 10.2789 12.6667 7.33333C12.6667 4.38781 10.2789 2 7.33333 2C4.38781 2 2 4.38781 2 7.33333C2 10.2789 4.38781 12.6667 7.33333 12.6667Z"
+                      stroke="#94A3B8" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <button class="toolbar-button">
+            <img class="toolbar-icon" src="/static/icons/download.svg" alt="Иконка импорта"/>
+            Импорт из Excel
+        </button>
+        <button class="toolbar-button">
+            <img onclick="exportEmployeesTable()" class="toolbar-icon" src="/static/icons/export.svg" alt="Иконка экспорта"/>
+            Экспорт в Excel
+        </button>
+        <button class="add-button">
+            <img class="employees-toolbar-icon" src="/static/icons/add-employee.svg" alt="Иконка добавить сотрудника"/>
+            Добавить сотрудника
+        </button>
+    </section>
+    <div class="table-container">
+        <table class="table" id="employees-table">
+            <thead>
+            <tr>
+                <th class="sticky-col">ФИО</th>
+                <th>ТАБ. №</th>
+                <th>ДОЛЖНОСТЬ</th>
+                <th>РАРЗЯРД</th>
+                <th>ПРОМЫСЕЛ</th>
+                <th>УЧАСТОК</th>
+                <th>КОМПЕТЕНЦИИ</th>
+                <th>НОЧЬ</th>
+                <th>СТ. ОПЕРАТОР</th>
+                <th>ЗАМ. НАЧАЛЬНИК СМЕНЫ</th>
+                <th>ЗАМ. СТ. ОПЕРАТОРА</th>
+                <th>ВАХТОВЫЙ МЕТОД</th>
+                <th>БАЗОВЫЙ ГОРОД</th>
+                <th>ПУНКТ СБОРА</th>
+                <th>МЕСТО ЖИТЕЛЬСТВА</th>
+                <th>ПОДРАЗДЕЛ ПЕРСОНАЛА</th>
+                <th>ДЕЙСТВИЯ С СОТРУДНИКОМ</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+    </div>
+    <div class="employees-stats-container">
+        <h2 class="employees-stats-title">ВСЕГО СОТРУДНИКОВ</h2>
+        <div class="employees-stats-row">
+            <span class="employees-stats"></span>
+            <span class="employees-stats-dynamic">
+            <svg style="color: white" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                 xmlns="http://www.w3.org/2000/svg">
+                <path d="M22 7L13.5 15.5L8.5 10.5L2 17" stroke="white" stroke-width="3" stroke-linecap="round"
+                      stroke-linejoin="round"/>
+                <path d="M16 7H22V13" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            в этом месяце
+        </span>
+        </div>
+    </div>
+</section>
