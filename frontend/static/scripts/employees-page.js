@@ -3,7 +3,7 @@ import { Employee } from "./shared.js";
 
 async function getUsers() {
     try {
-        const response = await fetch("http://localhost:8000/api/v1/employees/?facility_id=3&department_id=5&skip=0&limit=100")
+        const response = await fetch("http://127.0.0.1:5000/api/employees")
         const employeesJson = await response.json();
 
         if (!response.ok) {
@@ -32,17 +32,17 @@ function renderTable(users) {
 
         row.innerHTML = `
         <td class="sticky-col">${user.getFullName()}</td>
-        <td>${user.id}</td>
-        <td>${user.roleId}</td>
-        <td>Разряд</td>
-        <td>${user.departmentId}</td>
-        <td>НГДП-1</td>
-        <td>Много</td>
+        <td>${user.tab_number}</td>
+        <td>${user.role_name}</td>
+        <td>${user.rank}</td>
+        <td>Крапивинское</td>
+        <td>${user.department_name}</td>
+        <td>${user.activity}</td>
+        <td>${user.can_work_night}</td>
+        <td>${user.senior}</td>
+        <td>${user.can_replace_boss}</td>
         <td>0</td>
-        <td>0</td>
-        <td>0</td>
-        <td>0</td>
-        <td>${user.workMethod}</td>
+        <td>${user.work_method}</td>
         <td>Томск</td>
         <td>Томск</td>
         <td>Томск</td>
