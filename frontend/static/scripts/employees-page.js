@@ -31,7 +31,7 @@ function renderTable(users) {
         const row = document.createElement('tr');
 
         row.innerHTML = `
-        <td class="sticky-col">${user.getFullName()}</td>
+        <td class="sticky-col">${user.formatFullName()}</td>
         <td>${user.tab_number}</td>
         <td>${user.role_name}</td>
         <td>${user.rank}</td>

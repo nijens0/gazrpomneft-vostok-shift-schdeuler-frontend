@@ -14,7 +14,7 @@ export class Employee {
         this.work_method = data.work_method;
     }
 
-    getFullName() {
+    formatFullName() {
         let parts = this.full_name.split(' ');
         return `${parts[0]} ${parts[1].slice(0,1)}.${parts[2].slice(0,1)}.`;
     }

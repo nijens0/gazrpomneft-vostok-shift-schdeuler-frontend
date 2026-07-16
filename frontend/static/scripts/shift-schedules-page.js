@@ -6,36 +6,45 @@ class ScheduleInfo {
     }
 }
 
-class Schedule {
+class MonthlyScheduleInfo {
     constructor(data) {
-        this.scheduleId = data.schedule_id;
-        this.facility = data.facility;
-        this.department = data.department;
-        this.year = data.year;
+        this.department_name = data.department_name;
+        this.facility_name = data.facility_name;
         this.month = data.month;
-        this.daysInMonth = data.days_in_month;
-        this.shiftTypes = ""
+        this.roles = {};
+
+        if (data.roles) {
+            for (const [roleName, rawEmployeesArray] of Object.entries(data.roles)) {
+                this.roles[roleName] = rawEmployeesArray.map(emp => new Employee(emp));
+            }
+        }
+
+        this.schedule_id = data.schedule_id;
+        this.year = data.year;
     }
 }
 
 class Employee {
     constructor(data) {
-        this.id = data.employee_id;
-        this.name = data.name;
-        this.position = data.position;
-        this.schedule = data.schedule;
-        this.totals = {
-            totalHours: data.totals.total_hours,
-            dayHours: data.totals.day_hours,
-            nightHours: data.totals.night_hours
-        }
+        this.employee_name = data.employee_name;
+        this.fake_days = data.fake_days;
+        this.night_hours = data.night_hours;
+        this.rank = data.rank;
+        this.row_1_shift = data.row_1_shift;
+        this.row_2_day_hours = data.row_2_day_hours;
+        this.row_3_night_hours = data.row_3_night_hours;
+        this.tab_number = data.tab_number;
+        this.total_hours = data.total_hours;
+        this.travel_days = data.travel_days;
+        this.work_days = data.work_days;
+        this.work_method = data.work_method;
     }
 
-    formatName() {
-        let fullName = this.name.split(' ');
-
-        return `${fullName[0]} ${fullName[1].slice(0,1)}. ${fullName[2].slice(0,1)}.`;
+    formatFullName() {
+        let parts = this.employee_name.split(' ');
+        return `${parts[0]} ${parts[1].slice(0, 1)}.${parts[2].slice(0, 1)}.`;
     }
+
 }
 
 let monthsMap = new Map([
@@ -98,70 +107,87 @@ async function generateSchedule() {
     return await response.json();
 }
 
-async function getTableData() {
+async function getTableData(scheduleId, month) {
     try {
-        const response = await fetch("http://localhost:8000/api/v1/schedules/?facility_id=3&department_id=5&year=2026&month=5")
-        const rawArray = await response.json();
+        const response = await fetch(`http://127.0.0.1:5000/api/schedule/${scheduleId}?month=${month}`)
 
         if (!response.ok) {
             throw new Error(`Ошибка сервера ${response.status}`);
         }
-        const tableDataJson = rawArray[0];
 
-        const scheduleInfo = new Schedule(tableDataJson)
-        const employees = tableDataJson.employees.map(data => new Employee(data))
+        const rawData = await response.json();
 
-        console.log(scheduleInfo)
-        console.log(employees);
-
-        return {
-            scheduleInfo: scheduleInfo,
-            employees: employees
-        }
-    } catch (error) {
-        console.log(error);
+        return new MonthlyScheduleInfo(rawData);
+    } catch (Error) {
+        console.error(Error);
+        throw Error;
     }
 }
 
-function renderTable(scheduleInfo, employees) {
+function renderTable(monthlyScheduleInfo) {
     const tbody = document.querySelector('.table tbody');
     tbody.innerHTML = '';
 
-    employees.forEach(employee => {
-        const row1 = document.createElement('tr');
-        const row2 = document.createElement('tr');
-        const row3 = document.createElement('tr');
 
-        let symbols = ''
-        let dayHours = ''
-        let nightHours = ''
-        for (let i = 1; i <= scheduleInfo.daysInMonth; i++) {
-            symbols += `<td>${employee.schedule[i]}</td>`
-            dayHours += `<td>5</td>`
-            nightHours += `<td>5</td>`
-        }
+    for (const [roleName, employees] of Object.entries(monthlyScheduleInfo.roles)) {
+        employees.forEach(employee => {
+            const row1 = document.createElement('tr');
+            const row2 = document.createElement('tr');
+            const row3 = document.createElement('tr');
+            const row4 = document.createElement('tr');
 
-        row1.innerHTML = `
-            <td rowspan="3" class="sticky-col">${employee.formatName()}</td>
-            <td rowspan="3">${employee.position}</td>
-            <td rowspan="3">Разряд</td>
-            <td rowspan="3">${employee.id}</td>
-            <td rowspan="3">ВР</td>
-            <td rowspan="3">Шаблон</td>
-            ${symbols}
-            <td rowspan="3">${employee.totals.totalHours}</td>
-            <td rowspan="3">${employee.totals.dayHours}</td>
-            <td rowspan="3">${employee.totals.nightHours}</td>
-            <td rowspan="3">-</td>
-            <td rowspan="3">-</td>
-        `
-        row2.innerHTML = dayHours
-        row3.innerHTML = nightHours
+            let symbols = '';
+            let dayHours = '';
+            let nightHours = '';
 
-        tbody.appendChild(row1)
-        tbody.appendChild(row2)
-        tbody.appendChild(row3)
-    })
+            const shiftColors = {
+                // --day-shift
+                'Я': '#CBF6CB', 'Яз': '#CBF6CB', 'Яп': '#CBF6CB', 'Яв': '#CBF6CB',
+                // --night-shift
+                'Н': '#D1EAF1', 'Нз': '#D1EAF1', 'Нп': '#D1EAF1', 'Нв': '#D1EAF1',
+                // --rest-and-trips
+                'В': '#E8ECEF', 'ЕО': '#E8ECEF',
+                // --on-the-road-or-trips
+                'Д': '#FCEAB0',
+                // --vacations
+                'От': '#FBD2B3', 'До': '#FBD2B3',
+                // --special
+                'У': '#E2D9F5', 'К': '#E2D9F5', 'МВ': '#E2D9F5'
+            };
+
+            for (let i = 0; i <= 30; i++) {
+                const shiftVal = employee.row_1_shift[i] || '';
+                const bgColor = shiftColors[shiftVal] || 'transparent';
+
+                symbols += `<td style="background-color: ${bgColor}">${employee.row_1_shift[i]}</td>`
+                dayHours += `<td>${employee.row_2_day_hours[i]}</td>`
+                nightHours += `<td>${employee.row_3_night_hours[i]}</td>`
+            }
+
+            row1.innerHTML += `
+                    <td rowspan="3" class="sticky-col">${employee.formatFullName()}</td>
+                    <td rowspan="3">${roleName}</td>
+                    <td rowspan="3">${employee.rank}</td>
+                    <td rowspan="3">${employee.tab_number}</td>
+                    <td rowspan="3">${employee.work_method}</td>
+                    <td rowspan="3">
+                        <select disabled><option>15/15 День</option></select>
+                    </td>
+                    ${symbols}
+                    <td rowspan="3">${employee.total_hours}</td>
+                    <td rowspan="3">${employee.night_hours}</td>
+                    <td rowspan="3">${employee.work_days}</td>
+                    <td rowspan="3">${employee.travel_days}</td>
+                    <td rowspan="3">${employee.fake_days}</td>
+                `
+            row2.innerHTML = dayHours;
+            row3.innerHTML = nightHours;
+
+            tbody.appendChild(row1);
+            tbody.appendChild(row2);
+            tbody.appendChild(row3);
+        })
+    }
 }
 
 async function createAndLoadSchedule() {
@@ -172,24 +198,27 @@ async function createAndLoadSchedule() {
         const scheduleInfo = await generateSchedule();
         console.log(scheduleInfo);
 
-        chlen: while (true) {
+        polling: while (true) {
             const response = await fetch(`http://127.0.0.1:5000/api/schedule/status/${scheduleInfo.schedule_id}`)
+            if (!response.ok) {
+                throw new Error(`Ошибка сервера ${response.status}`)
+            }
             const data = await response.json()
             console.log(data)
             switch (data.status) {
                 case "error":
                     console.log(data.message);
-                    break chlen;
-                case "success":
+                    break polling;
+                case "optimal":
                     console.log(data.message);
-                    break chlen;
+                    break polling;
             }
             await new Promise(resolve => setTimeout(resolve, 10000));
         }
 
-        const data = await getTableData();
+        const data = await getTableData(scheduleInfo.schedule_id, 1);
 
-        renderTable(data.scheduleInfo, data.employees);
+        renderTable(data);
     } catch (error) {
         console.log(error);
     } finally {
@@ -199,7 +228,7 @@ async function createAndLoadSchedule() {
 
 export function init() {
     if (generateScheduleButton) {
-        generateScheduleButton.addEventListener("click", async() => {
+        generateScheduleButton.addEventListener("click", async () => {
             await createAndLoadSchedule();
         });
     } else {
