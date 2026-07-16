@@ -1,15 +1,21 @@
 export class Employee {
     constructor(data) {
-        this.id = data.id;
-        this.firstName = data.first_name;
-        this.lastName = data.last_name;
-        this.middleName = data.middle_name;
-        this.workMethod = data.work_method;
-        this.departmentId = data.department_id;
-        this.roleId = data.role_id;
+        this.activity = data.activity ?? `?`;
+        this.can_replace_boss = data.can_replace_boss;
+        this.can_work_night = data.can_work_night;
+        this.department_name = data.department_name;
+        this.facility_name = data.facility_name;
+        this.full_name = data.full_name;
+        this.rank = data.rank ?? `?`;
+        this.role_name = data.role_name;
+        this.senior = data.senior ?? `?`;
+        this.tab_number = data.tab_number;
+        this.tmc = data.tmc;
+        this.work_method = data.work_method;
     }
 
     getFullName() {
-        return `${this.lastName} ${this.firstName.slice(0,1)}. ${this.middleName.slice(0,1)}.`;
+        let parts = this.full_name.split(' ');
+        return `${parts[0]} ${parts[1].slice(0,1)}.${parts[2].slice(0,1)}.`;
     }
 }
