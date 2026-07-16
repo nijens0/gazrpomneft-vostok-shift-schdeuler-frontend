@@ -1,3 +1,11 @@
+class ScheduleInfo {
+    constructor(data) {
+        this.schedule_id = data.schedule_id;
+        this.status = data.status;
+        this.message = data.message;
+    }
+}
+
 class Schedule {
     constructor(data) {
         this.scheduleId = data.schedule_id;
@@ -70,12 +78,12 @@ function hideLoadingSpinner() {
 
 async function generateSchedule() {
     const body = {
-        facility_id: 3,
-        department_id: 5,
-        year: 2026
+        department_id: 1,
+        year: 2026,
+        employee_overrides: []
     };
 
-    const response = await fetch("http://localhost:8000/api/v1/schedules/generate", {
+    const response = await fetch("http://127.0.0.1:5000/api/schedule/generate", {
         method: "POST",
         headers: {
             'Content-Type': 'application/json'
@@ -161,11 +169,23 @@ async function createAndLoadSchedule() {
 
     try {
         console.log("Loading Schedule...");
-        await generateSchedule();
+        const scheduleInfo = await generateSchedule();
+        console.log(scheduleInfo);
 
-        console.log("Awaiting Schedule for 80 seconds")
-        await new Promise(resolve => setTimeout(resolve, 80000));
-        // Костыль, потом надо будет делать проверку на то, что сгенерировался график
+        chlen: while (true) {
+            const response = await fetch(`http://127.0.0.1:5000/api/schedule/status/${scheduleInfo.schedule_id}`)
+            const data = await response.json()
+            console.log(data)
+            switch (data.status) {
+                case "error":
+                    console.log(data.message);
+                    break chlen;
+                case "success":
+                    console.log(data.message);
+                    break chlen;
+            }
+            await new Promise(resolve => setTimeout(resolve, 10000));
+        }
 
         const data = await getTableData();
 
@@ -178,16 +198,16 @@ async function createAndLoadSchedule() {
 }
 
 export function init() {
-    /* if (generateScheduleButton) {
+    if (generateScheduleButton) {
         generateScheduleButton.addEventListener("click", async() => {
             await createAndLoadSchedule();
         });
     } else {
         console.warn("Кнопка генерации не найдена на странице!")
-    } */
-    generateScheduleButton.addEventListener('click', async() => {
+    }
+    /* generateScheduleButton.addEventListener('click', async () => {
         getTableData().then(data => {
             renderTable(data.scheduleInfo, data.employees);
         })
-    });
+    }); */
 }
