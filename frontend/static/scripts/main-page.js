@@ -2,7 +2,7 @@ export function init() {
     const mainHeader = document.querySelector('.main-header');
     const burgerButton = document.querySelector('.header-burger');
     const sideMenu = document.querySelector(`.side-menu`);
-    const shiftSchedulesRedirectButton = document.querySelector('.shift-schedules-redirect');
+    const shiftSchedulesRedirectButtons = document.querySelectorAll('.shift-schedules-redirect');
 
     const today = new Date();
     const formattedDate = today.toLocaleDateString('ru-RU', {
@@ -20,7 +20,11 @@ export function init() {
         sideMenu.classList.toggle('is-collapsed');
     })
 
-    shiftSchedulesRedirectButton.addEventListener("click", async () => {
+    shiftSchedulesRedirectButtons[0].addEventListener('click', () => {
         window.location.href = `/shift-schedules-page.html`
+    })
+
+    shiftSchedulesRedirectButtons[1].addEventListener('click', () => {
+        window.location.href = `/agreement-page.html`
     })
 }
