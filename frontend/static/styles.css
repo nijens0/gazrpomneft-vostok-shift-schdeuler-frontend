@@ -397,9 +397,38 @@ body {
     flex-direction: column;
     background-color: var(--dark-blue);
     min-width: 270px;
-    width: 270px;
     height: 100%;
     padding: 24px;
+    overflow: hidden;
+
+    &.is-collapsed{
+        transition-duration: var(--transition-duration);
+
+        min-width: 0;
+        flex-shrink: 0;
+        padding-right: 6px;
+
+        * {
+            font-size: 0;
+            column-gap: 0;
+        }
+
+        .app-name-and-version {
+            display: none !important;
+        }
+
+        .header-burger {
+            transform: translateX(-29px);
+        }
+
+        .side-menu-footer {
+            width: 56px;
+        }
+
+        .side-menu-list {
+            width: 54px;
+        }
+    }
 }
 
 .side-menu-header {

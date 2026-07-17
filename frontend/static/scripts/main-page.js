@@ -1,6 +1,8 @@
 export function init() {
     const mainHeader = document.querySelector('.main-header');
-    if (!mainHeader) return;
+    const burgerButton = document.querySelector('.header-burger');
+    const sideMenu = document.querySelector(`.side-menu`);
+    const shiftSchedulesRedirectButton = document.querySelector('.shift-schedules-redirect');
 
     const today = new Date();
     const formattedDate = today.toLocaleDateString('ru-RU', {
@@ -13,4 +15,12 @@ export function init() {
 
     mainHeader.after(dateElement);
     console.log("Главная страница инициализирована");
+
+    burgerButton.addEventListener("click", async () => {
+        sideMenu.classList.toggle('is-collapsed');
+    })
+
+    shiftSchedulesRedirectButton.addEventListener("click", async () => {
+        window.location.href = `/shift-schedules-page.html`
+    })
 }
