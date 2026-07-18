@@ -1,7 +1,5 @@
 export function init() {
     const mainHeader = document.querySelector('.main-header');
-    const burgerButton = document.querySelector('.header-burger');
-    const sideMenu = document.querySelector(`.side-menu`);
     const shiftSchedulesRedirectButtons = document.querySelectorAll('.shift-schedules-redirect');
 
     const today = new Date();
@@ -16,9 +14,6 @@ export function init() {
     mainHeader.after(dateElement);
     console.log("Главная страница инициализирована");
 
-    burgerButton.addEventListener("click", async () => {
-        sideMenu.classList.toggle('is-collapsed');
-    })
 
     shiftSchedulesRedirectButtons[0].addEventListener('click', () => {
         window.location.href = `/shift-schedules-page.html`
