@@ -56,12 +56,6 @@ function renderTable(users) {
 function exportEmployeesTable() {
     const table = document.getElementById('employees-table');
 
-    if (!table) {
-        console.error("Таблица не найдена");
-        alert("Таблица не найдена!");
-        return;
-    }
-
     try {
         const worksheet = XLSX.utils.table_to_sheet(table);
 
@@ -98,10 +92,8 @@ function exportEmployeesTable() {
         XLSX.utils.book_append_sheet(workbook, worksheet, "Сотрудники");
         XLSX.writeFile(workbook, "employees.xlsx");
 
-        console.log("Таблица успешно экспортирована без столбца Q");
     }
     catch (e) {
-        console.error("Ошибка при экспорте:", e);
         alert("Не удалось сгенерировать Excel-файл");
     }
 }
@@ -154,7 +146,7 @@ function importEmployeesTable(event) {
 
             for (let i = 1; i < jsonData.length; i++) {
                 const row = jsonData[i];
-                if (!row || row.length === 0 || !row[0]) continue; // Пропускаем пустые строки
+                if (!row || row.length === 0 || !row[0]) continue;
 
                 const fullName = String(row[0]).trim();
                 const nameParts = fullName.split(/\s+/);
@@ -180,11 +172,9 @@ function importEmployeesTable(event) {
             }
 
             renderTable(importedUsers);
-            console.log("Данные импортированы:", importedUsers);
             alert(`Импорт успешно завершен! Добавлено сотрудников: ${importedUsers.length}`);
 
         } catch (error) {
-            console.error("Ошибка парсинга файла:", error);
             alert("Не удалось распознать Excel-файл. Убедитесь, что файл не поврежден.");
         }
     };

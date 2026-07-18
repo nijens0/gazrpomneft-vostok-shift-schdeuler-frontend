@@ -61,7 +61,7 @@ menuList.addEventListener('click', async (event) => {
         if (path && path !== "") {
             window.history.pushState({ path, sectionName }, '', path);
 
-            route(path, sectionName);
+            await route(path, sectionName);
             updateActiveMenuItem(path);
         }
     }

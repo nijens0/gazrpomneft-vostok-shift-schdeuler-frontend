@@ -120,7 +120,6 @@ function renderTable(monthlyScheduleInfo) {
             const row1 = document.createElement('tr');
             const row2 = document.createElement('tr');
             const row3 = document.createElement('tr');
-            const row4 = document.createElement('tr');
 
             let symbols = '';
             let dayHours = '';
@@ -180,9 +179,7 @@ async function createAndLoadSchedule(scheduleId, month) {
     showLoadingSpinner()
 
     try {
-        console.log("Loading Schedule...");
         // const scheduleInfo = await generateSchedule();
-        // console.log(scheduleInfo);
 
         polling: while (true) {
             const response = await fetch(`http://127.0.0.1:5000/api/schedule/status/${scheduleId}`)
