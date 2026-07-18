@@ -47,23 +47,9 @@ class Employee {
 
 }
 
-let monthsMap = new Map([
-    [1, "январь"],
-    [2, "февраль"],
-    [3, "март"],
-    [4, "апрель"],
-    [5, "май"],
-    [6, "июнь"],
-    [7, "июль"],
-    [8, "август"],
-    [9, "сентябрь"],
-    [10, "октябрь"],
-    [11, "ноябрь"],
-    [12, "декабрь"]
-]);
-
 const generateScheduleButton = document.querySelector(".add-button");
 const loader = document.getElementById('loader');
+const selectors = document.querySelectorAll('.selector');
 
 function showLoadingSpinner() {
     generateScheduleButton.disabled = true;
@@ -190,16 +176,16 @@ function renderTable(monthlyScheduleInfo) {
     }
 }
 
-async function createAndLoadSchedule() {
+async function createAndLoadSchedule(scheduleId, month) {
     showLoadingSpinner()
 
     try {
         console.log("Loading Schedule...");
-        const scheduleInfo = await generateSchedule();
-        console.log(scheduleInfo);
+        // const scheduleInfo = await generateSchedule();
+        // console.log(scheduleInfo);
 
         polling: while (true) {
-            const response = await fetch(`http://127.0.0.1:5000/api/schedule/status/${scheduleInfo.schedule_id}`)
+            const response = await fetch(`http://127.0.0.1:5000/api/schedule/status/${scheduleId}`)
             if (!response.ok) {
                 throw new Error(`Ошибка сервера ${response.status}`)
             }
@@ -216,7 +202,7 @@ async function createAndLoadSchedule() {
             await new Promise(resolve => setTimeout(resolve, 10000));
         }
 
-        const data = await getTableData(scheduleInfo.schedule_id, 1);
+        const data = await getTableData(scheduleId, month);
 
         renderTable(data);
     } catch (error) {
@@ -229,7 +215,10 @@ async function createAndLoadSchedule() {
 export function init() {
     if (generateScheduleButton) {
         generateScheduleButton.addEventListener("click", async () => {
-            await createAndLoadSchedule();
+            const monthSelector = selectors[0]
+
+
+            await createAndLoadSchedule(4, monthSelector.value);
         });
     } else {
         console.warn("Кнопка генерации не найдена на странице!")
