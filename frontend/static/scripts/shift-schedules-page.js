@@ -190,10 +190,8 @@ async function createAndLoadSchedule(scheduleId, month) {
             console.log(data)
             switch (data.status) {
                 case "error":
-                    console.log(data.message);
                     break polling;
                 case "optimal":
-                    console.log(data.message);
                     break polling;
             }
             await new Promise(resolve => setTimeout(resolve, 10000));
@@ -212,7 +210,7 @@ async function createAndLoadSchedule(scheduleId, month) {
 export function init() {
     if (generateScheduleButton) {
         generateScheduleButton.addEventListener("click", async () => {
-            const monthSelector = selectors[0]
+            const monthSelector = selectors[2]
 
 
             await createAndLoadSchedule(4, monthSelector.value);

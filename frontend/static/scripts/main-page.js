@@ -1,5 +1,5 @@
 export function init() {
-    const mainHeader = document.querySelector('.main-header');
+    const navContainer = document.querySelector(`.nav-container`);
     const shiftSchedulesRedirectButtons = document.querySelectorAll('.shift-schedules-redirect');
 
     const today = new Date();
@@ -7,12 +7,11 @@ export function init() {
         day: 'numeric', month: 'long', year: 'numeric'
     });
 
-    const dateElement = document.createElement('h2');
+    const dateElement = document.createElement('h1');
     dateElement.classList.add('current-date');
     dateElement.textContent = `Сегодня: ${formattedDate}`;
 
-    mainHeader.after(dateElement);
-    console.log("Главная страница инициализирована");
+    navContainer.before(dateElement);
 
 
     shiftSchedulesRedirectButtons[0].addEventListener('click', () => {

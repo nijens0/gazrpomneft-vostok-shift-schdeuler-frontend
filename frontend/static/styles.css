@@ -576,10 +576,6 @@ body {
     transform: translateY(-5px);
 }
 
-.notification-icon {
-    color: var(--dark-gray);
-}
-
 .notification-icon:hover {
     color: var(--blue);
     transition-duration: var(--transition-duration);
@@ -599,13 +595,13 @@ body {
     flex-direction: column;
 }
 
-.username {
+.user-role {
     font-weight: 700;
     font-size: 14px;
     color: black
 }
 
-.job-title {
+.department {
     font-weight: 500;
     font-size: 12px;
     color: var(--dark-gray);
@@ -620,14 +616,8 @@ body {
     overflow-y: auto;
 }
 
-.main-header {
-    font-weight: 500;
-    font-size: 14px;
-    color: var(--dark-gray);
-}
-
 .current-date {
-    font-size: 18px;
+    font-size: 24px;
     font-weight: 600;
 }
 
@@ -694,6 +684,7 @@ body {
 .nav-container-element-title {
     font-weight: 600;
     font-size: 20px;
+    margin-bottom: 10px;
 }
 
 .nav-container-element-text {
