@@ -11,8 +11,7 @@ async function getUsers() {
         }
 
         return employeesJson.map(employeeData => new Employee(employeeData));
-    }
-    catch (error) {
+    } catch (error) {
         console.log(error);
     }
 }
@@ -30,20 +29,20 @@ function renderTable(users) {
         row.innerHTML = `
         <td class="sticky-col">${user.formatFullName()}</td>
         <td>${user.tab_number}</td>
-        <td>${user.role_name}</td>
-        <td>${user.rank}</td>
-        <td>Крапивинское</td>
-        <td>${user.department_name}</td>
-        <td>${user.activity}</td>
-        <td>${user.can_work_night}</td>
-        <td>${user.senior}</td>
-        <td>${user.can_replace_boss}</td>
-        <td>0</td>
-        <td>${user.work_method}</td>
-        <td>Томск</td>
-        <td>Томск</td>
-        <td>Томск</td>
-        <td>КрапивМесторож</td>
+        <td class="editable">${user.role_name}</td>
+        <td class="editable">${user.rank}</td>
+        <td class="editable">Крапивинское</td>
+        <td class="editable">${user.department_name}</td>
+        <td class="editable">${user.activity}</td>
+        <td class="editable">${user.can_work_night}</td>
+        <td class="editable">${user.senior}</td>
+        <td class="editable">${user.can_replace_boss}</td>
+        <td class="editable">0</td>
+        <td class="editable">${user.work_method}</td>
+        <td class="editable">Томск</td>
+        <td class="editable">Томск</td>
+        <td class="editable">Томск</td>
+        <td class="editable">КрапивМесторож</td>
         <td>
             <div class="edit-container">
                 <img class="edit-button" src="/static/icons/pencil.png" alt="Редактирование">
@@ -89,13 +88,12 @@ function exportEmployeesTable() {
             }
         });
 
-        worksheet['!cols'] = colWidths.map(w => ({ wch: w < 10 ? 10 : w }));
+        worksheet['!cols'] = colWidths.map(w => ({wch: w < 10 ? 10 : w}));
 
         XLSX.utils.book_append_sheet(workbook, worksheet, "Сотрудники");
         XLSX.writeFile(workbook, "employees.xlsx");
 
-    }
-    catch (e) {
+    } catch (e) {
         alert("Не удалось сгенерировать Excel-файл");
     }
 }
@@ -105,15 +103,15 @@ function importEmployeesTable(event) {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
         try {
             const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
+            const workbook = XLSX.read(data, {type: 'array'});
 
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
 
-            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
 
             if (jsonData.length === 0) {
                 alert("Файл пуст!");
@@ -199,17 +197,82 @@ export function init() {
         fileInput.style.display = 'none';
         document.body.appendChild(fileInput);
 
-        if (importButton) {
-            importButton.addEventListener('click', () => {
-                fileInput.click();
-            });
-        }
+        importButton.addEventListener('click', () => {
+            fileInput.click();
+        });
 
         fileInput.addEventListener('change', importEmployeesTable);
 
-        if (exportButton) {
-            exportButton.addEventListener('click', exportEmployeesTable);
-        }
+        exportButton.addEventListener('click', exportEmployeesTable);
+
+        let backup = []
+        const table = document.querySelector(".table")
+        table.addEventListener("click", (e) => {
+            const target = e.target;
+
+            if (target.classList.contains("edit-button")) {
+                backup = []
+
+                const tr = target.closest('tr');
+                const cells = tr.querySelectorAll('.editable');
+
+                cells.forEach(td => {
+                    let cell = td.innerHTML.trim();
+                    backup.push(cell)
+                    td.innerHTML = `<input class="table-input" placeholder="${backup.at(-1)}" value="${backup.at(-1)}">`
+                })
+
+                const editContainer = document.querySelector('.edit-container')
+                editContainer.innerHTML =
+                    `<svg class="apply-button" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 50 50" fill="#64748B" stroke="#64748B" stroke-width="1.5" stroke-linejoin="round">
+                        <path d="M 41.9375 8.625 C 41.273438 8.648438 40.664063 9 40.3125 9.5625 L 21.5 38.34375 L 9.3125 27.8125 C 8.789063 27.269531 8.003906 27.066406 7.28125 27.292969 C 6.5625 27.515625 6.027344 28.125 5.902344 28.867188 C 5.777344 29.613281 6.078125 30.363281 6.6875 30.8125 L 20.625 42.875 C 21.0625 43.246094 21.640625 43.410156 22.207031 43.328125 C 22.777344 43.242188 23.28125 42.917969 23.59375 42.4375 L 43.6875 11.75 C 44.117188 11.121094 44.152344 10.308594 43.78125 9.644531 C 43.410156 8.984375 42.695313 8.589844 41.9375 8.625 Z"/>
+                     </svg>
+                     <svg class="cancel-button" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 50 50" fill="#64748B" stroke="#64748B" stroke-width="1.5" stroke-linejoin="round">
+                        <path d="M 9.15625 6.3125 L 6.3125 9.15625 L 22.15625 25 L 6.21875 40.96875 L 9.03125 43.78125 L 25 27.84375 L 40.9375 43.78125 L 43.78125 40.9375 L 27.84375 25 L 43.6875 9.15625 L 40.84375 6.3125 L 25 22.15625 Z"/>
+                     </svg>
+                    `
+            } else if (target.classList.contains("apply-button")) {
+                backup = []
+
+                const tr = target.closest('tr');
+                const cells = tr.querySelectorAll('.editable');
+
+                cells.forEach(td => {
+                    const input = td.querySelector('input');
+
+                    td.innerHTML = input.value.trim();
+                })
+
+                const editContainer = document.querySelector('.edit-container')
+                editContainer.innerHTML =
+                    `<img class="edit-button" src="/static/icons/pencil.png" alt="Редактирование">
+                     <img class="delete-button" src="/static/icons/bin.png" alt="Удалить">
+                    `
+            } else if (target.classList.contains("cancel-button")) {
+                backup = []
+
+                const tr = target.closest('tr');
+                const cells = tr.querySelectorAll('.editable');
+
+                cells.forEach(td => {
+                    const input = td.querySelector('input');
+
+                    td.innerHTML = input.value.trim();
+                })
+
+                const editContainer = document.querySelector('.edit-container')
+                editContainer.innerHTML =
+                    `<img class="edit-button" src="/static/icons/pencil.png" alt="Редактирование">
+                     <img class="delete-button" src="/static/icons/bin.png" alt="Удалить">
+                    `
+            } else if (target.classList.contains("delete-button")) {
+                backup = []
+
+                const tr = target.closest('tr');
+                tr.remove();
+            }
+
+        })
 
         renderTable(users);
     });

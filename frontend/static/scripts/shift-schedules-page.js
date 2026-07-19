@@ -211,6 +211,8 @@ export function init() {
     if (generateScheduleButton) {
         generateScheduleButton.addEventListener("click", async () => {
             const monthSelector = selectors[2]
+            console.log(`${monthSelector} - выбранный месяц`)
+            console.log(`button clicked`)
 
 
             await createAndLoadSchedule(4, monthSelector.value);
