@@ -1,4 +1,4 @@
-import { Employee } from "./shared.js";
+import {Employee} from "./shared.js";
 /* global XLSX */
 
 async function getUsers() {
@@ -10,10 +10,7 @@ async function getUsers() {
             throw new Error(`Ошибка сервера ${response.status}`);
         }
 
-        const users = employeesJson.map (employeeData => new Employee(employeeData));
-        console.log(users);
-
-        return users;
+        return employeesJson.map(employeeData => new Employee(employeeData));
     }
     catch (error) {
         console.log(error);
@@ -47,7 +44,12 @@ function renderTable(users) {
         <td>Томск</td>
         <td>Томск</td>
         <td>КрапивМесторож</td>
-        <td></td>`;
+        <td>
+            <div class="edit-container">
+                <img class="edit-button" src="/static/icons/pencil.png" alt="Редактирование">
+                <img class="delete-button" src="/static/icons/bin.png" alt="Удалить">
+            </div>
+        </td>`;
 
         tbody.appendChild(row);
     })

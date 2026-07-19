@@ -1062,3 +1062,28 @@ td.sticky-col {
 .hidden {
     display: none !important;
 }
+
+.edit-container {
+    display: flex;
+    justify-content: center;
+    column-gap: 16px;
+}
+
+.edit-button {
+    filter: invert(64%) sepia(12%) saturate(480%) hue-rotate(175deg) brightness(97%) contrast(95%);
+    transition: var(--transition-duration);
+
+    &:hover {
+        filter: invert(14%) sepia(95%) saturate(2699%) hue-rotate(214deg) brightness(88%) contrast(103%);
+    }
+
+}
+
+.delete-button {
+    filter: invert(64%) sepia(12%) saturate(480%) hue-rotate(175deg) brightness(97%) contrast(95%);
+    transition: var(--transition-duration);
+
+    &:hover {
+        filter: invert(19%) sepia(34%) saturate(7492%) hue-rotate(351deg) brightness(85%) contrast(92%);
+    }
+}
