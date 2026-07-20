@@ -360,8 +360,7 @@ async function pollScheduleStatus(scheduleId) {
     }
 }
 
-export async function init() {
-
+async function checkGenerationStatus() {
     const lastScheduleId = localStorage.getItem(LAST_SCHEDULE_ID_KEY);
     if (lastScheduleId) {
         const rawData = await fetch(`http://127.0.0.1:5000/api/schedule/status/${lastScheduleId}`);
@@ -372,18 +371,27 @@ export async function init() {
             pollScheduleStatus(lastScheduleId);
         }
     }
+}
 
+async function initScheduleUI() {
     const rawDataSchedules = await fetch("http://127.0.0.1:5000/api/schedules");
     const schedules = await rawDataSchedules.json()
 
     if (schedules.length === 0) changeUItoGenerateSchedule()
-    else await changeUItoChooseSchedule(schedules);
+    else await changeUItoChooseSchedule();
+}
+
+export async function init() {
+
+    await initScheduleUI();
+
+    checkGenerationStatus();
 
     DOM.btnGenerate.addEventListener("click", async () => {
         if (DOM.btnGenerate.innerHTML.trim() === `Начать генерацию`) {
             await generateButtonCase(DOM.selectors[0], DOM.selectors[1]);
         } else if (DOM.btnGenerate.innerHTML.trim() === `Сформировать график`) {
-            changeUItoGenerateSchedule(schedules)
+            changeUItoGenerateSchedule()
         }
     });
 }
