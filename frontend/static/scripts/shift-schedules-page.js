@@ -320,9 +320,10 @@ async function updateTableData() {
     const selectors = DOM.selectors;
     if (!DOM.selectors[0].checkValidity()) return;
 
-    const tableData = await getTableData(selectors[0].value, selectors[1].value);
+
     try {
-    renderTable(tableData);
+        const tableData = await getTableData(selectors[0].value, selectors[1].value);
+        renderTable(tableData);
     } catch (error) {
         console.log(error.message);
     }
@@ -368,7 +369,18 @@ async function checkGenerationStatus() {
         if (response.status === "processing") {
             blockUI()
             showLoadingSpinner()
-            pollScheduleStatus(lastScheduleId);
+
+            try {
+                await pollScheduleStatus(lastScheduleId);
+                const data = await getTableData(lastScheduleId, 1);
+                renderTable(data);
+            } catch (error) {
+                console.error("Ошибка при восстановлении генерации:", error);
+            } finally {
+                hideLoadingSpinner();
+                unblockUI();
+                await changeUItoChooseSchedule();
+            }
         }
     }
 }
