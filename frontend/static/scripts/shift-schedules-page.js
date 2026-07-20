@@ -481,7 +481,7 @@ export async function init() {
 
     DOM.btnGenerate.addEventListener("click", async () => {
         if (DOM.btnGenerate.innerHTML.trim() === `Начать генерацию`) {
-            await generateButtonCase(DOM.selectors[0], DOM.selectors[1]);
+            await generateButtonCase(DOM.selectors[1], DOM.selectors[0]);
         } else if (DOM.btnGenerate.innerHTML.trim() === `Сформировать график`) {
             await changeUItoGenerateSchedule()
         }
