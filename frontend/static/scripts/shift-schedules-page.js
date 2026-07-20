@@ -1,11 +1,3 @@
-class ScheduleResponse {
-    constructor(data) {
-        this.schedule_id = data.schedule_id;
-        this.status = data.status;
-        this.message = data.message;
-    }
-}
-
 class MonthlyScheduleInfo {
     constructor(data) {
         this.department_name = data.department_name;
@@ -47,34 +39,49 @@ class Employee {
 
 }
 
-const generateScheduleButton = document.querySelector(".add-button");
-const loader = document.getElementById('loader');
-const selectors = document.querySelectorAll('.selector');
+const LAST_SCHEDULE_ID_KEY = 'last-schedule-id';
+
+const DOM = {
+    get btnGenerate() {
+        return document.querySelector(".add-button");
+    },
+    get loader() {
+        return document.getElementById('loader');
+    },
+    get overlay() {
+        return document.getElementById('loading-overlay');
+    },
+    get selectors() {
+        return document.querySelectorAll('.selector');
+    },
+    get btnImport() {
+        return document.querySelector('.import');
+    },
+    get btnExport() {
+        return document.querySelector('.export');
+    }
+};
 
 function showLoadingSpinner() {
-    generateScheduleButton.disabled = true;
+    DOM.btnGenerate.disabled = true;
+    DOM.btnGenerate.innerHTML = 'Генерация...';
 
-    if (loader) {
-        loader.classList.remove('hidden');
-    } else {
-        generateScheduleButton.innerText = 'Генерация...';
-    }
+    DOM.loader.classList.remove('hidden');
 }
 
 function hideLoadingSpinner() {
-    generateScheduleButton.disabled = false;
+    DOM.btnGenerate.disabled = false;
+    DOM.btnGenerate.innerHTML = 'Сформировать график';
 
-    if (loader) {
-        loader.classList.add('hidden');
-    } else {
-        generateScheduleButton.innerText = 'Сформировать график';
-    }
+    DOM.loader.classList.add('hidden');
 }
 
-async function generateSchedule() {
+async function generateSchedule(department_id, year) {
+    blockUI()
+
     const body = {
-        department_id: 1,
-        year: 2026,
+        department_id: department_id,
+        year: year,
         employee_overrides: []
     };
 
@@ -144,9 +151,9 @@ function renderTable(monthlyScheduleInfo) {
                 const shiftVal = employee.row_1_shift[i] || '';
                 const bgColor = shiftColors[shiftVal] || 'transparent';
 
-                symbols += `<td style="background-color: ${bgColor}">${employee.row_1_shift[i]}</td>`
-                dayHours += `<td>${employee.row_2_day_hours[i]}</td>`
-                nightHours += `<td>${employee.row_3_night_hours[i]}</td>`
+                symbols += `<td style="background-color: ${bgColor}">${employee.row_1_shift[i] ?? ""}</td>`
+                dayHours += `<td>${employee.row_2_day_hours[i] ?? ""}</td>`
+                nightHours += `<td>${employee.row_3_night_hours[i] ?? ""}</td>`
             }
 
             row1.innerHTML += `
@@ -172,45 +179,211 @@ function renderTable(monthlyScheduleInfo) {
     }
 }
 
-async function createAndLoadSchedule(month) {
+function clearTable() {
+    const tbody = document.querySelector('.table tbody');
+    if (tbody) tbody.innerHTML = '';
+}
+
+async function createAndLoadSchedule(departmentId, facilityId) {
     showLoadingSpinner()
 
     try {
-        const scheduleResponse = await generateSchedule().json();
+        const year = new Date().getFullYear()
+        const scheduleResponse = await generateSchedule(departmentId, year);
+        localStorage.setItem(LAST_SCHEDULE_ID_KEY, scheduleResponse.schedule_id);
 
-        polling: while (true) {
-            const rawData = await fetch(`http://127.0.0.1:5000/api/schedule/status/${scheduleResponse.schedule_id}`)
-            const response = await rawData.json()
-            switch (response.status) {
-                case "error":
-                    throw new Error(`Ошибка генерации графика: ${response.message}`);
-                case "optimal":
-                    break polling;
-            }
-            await new Promise(resolve => setTimeout(resolve, 10000));
-        }
+        await pollScheduleStatus(scheduleResponse.schedule_id);
 
-        const data = await getTableData(scheduleResponse.schedule_id, month);
+        const data = await getTableData(scheduleResponse.schedule_id, 1);
 
         renderTable(data);
     } catch (error) {
         console.log(error);
     } finally {
         hideLoadingSpinner()
+        unblockUI()
+        await changeUItoChooseSchedule()
     }
 }
 
-export function init() {
-    if (generateScheduleButton) {
-        generateScheduleButton.addEventListener("click", async () => {
-            const monthSelector = selectors[2]
-            console.log(`${monthSelector} - выбранный месяц`)
-            console.log(`button clicked`)
+async function generateButtonCase(departmentSelector, facilitySelector) {
+    await createAndLoadSchedule(departmentSelector.value, facilitySelector.value);
+}
+
+async function changeUItoChooseSchedule() {
+    const rawDataSchedules = await fetch("http://127.0.0.1:5000/api/schedules");
+    const schedules = await rawDataSchedules.json()
 
 
-            await createAndLoadSchedule(monthSelector.value);
-        });
-    } else {
-        console.warn("Кнопка генерации не найдена на странице!")
+    const scheduleSelector = document.createElement("select");
+    scheduleSelector.classList.add("selector");
+    scheduleSelector.required = true;
+    scheduleSelector.ariaLabel = `Графики`
+
+    const defaultOption = document.createElement("option");
+    defaultOption.disabled = true;
+    defaultOption.value = "";
+    defaultOption.selected = true;
+    defaultOption.textContent = "Графики"
+    scheduleSelector.appendChild(defaultOption);
+
+    schedules.forEach((schedule) => {
+        scheduleSelector.add(new Option(`${schedule.name}`, `${schedule.id}`));
+    })
+
+    DOM.selectors[0].replaceWith(scheduleSelector);
+
+    DOM.selectors[1].outerHTML = `
+                <select class="selector" aria-label="Месяц" required>
+                    <option value="1" selected>Январь</option>
+                    <option value="2">Февраль</option>
+                    <option value="3">Март</option>
+                    <option value="4">Апрель</option>
+                    <option value="5">Май</option>
+                    <option value="6">Июнь</option>
+                    <option value="7">Июль</option>
+                    <option value="8">Август</option>
+                    <option value="9">Сентябрь</option>
+                    <option value="10">Октябрь</option>
+                    <option value="11">Ноябрь</option>
+                    <option value="12">Декабрь</option>
+                </select>`
+
+    DOM.btnGenerate.disabled = false;
+
+    attachSelectorListenersToRenderTable();
+}
+
+async function handleBackClick() {
+    const btnImport = DOM.btnImport;
+    btnImport.classList.remove('hidden');
+
+    const btnExport = DOM.btnExport;
+    btnExport.innerHTML = `
+            <img class="toolbar-icon" src="/static/icons/export.svg" alt="Иконка экспорта"/>
+            Экспорт в Excel`
+    btnExport.removeEventListener('click', handleBackClick);
+    btnExport.addEventListener('click', handleExportClick);
+
+    DOM.btnGenerate.innerHTML = 'Сформировать график'
+    await changeUItoChooseSchedule()
+}
+
+function handleExportClick() {
+
+}
+
+function changeUItoGenerateSchedule() {
+    DOM.selectors[0].outerHTML = `
+                <select class="selector" aria-label="Участок" required>
+                    <option disabled value="" selected>Промысел</option>
+                    <option value="1">УППН</option>
+                </select>`;
+
+    DOM.selectors[1].outerHTML = `
+                <select class="selector" aria-label="Промысел" required>
+                    <option disabled value="" selected>Участок</option>
+                    <option value="1">НГДП-2</option>
+                    <option value="2">НГДП-2К</option>
+                    <option value="3">НГДП-4</option>
+                </select>`;
+
+    DOM.btnGenerate.innerHTML = `Начать генерацию`
+    DOM.btnGenerate.disabled = true;
+
+    DOM.btnImport.classList.add('hidden');
+
+    const btnExport = DOM.btnExport;
+    btnExport.innerHTML = `Назад`;
+    btnExport.removeEventListener('click', handleExportClick);
+    btnExport.addEventListener('click', handleBackClick);
+
+
+
+    clearTable()
+    attachSelectorListenersToGenerate();
+}
+
+function updateButtonState() {
+    const isValid = DOM.selectors[0].checkValidity() && DOM.selectors[1].checkValidity();
+    DOM.btnGenerate.disabled = !isValid;
+}
+
+function attachSelectorListenersToGenerate() {
+    DOM.selectors.forEach(selector => {
+        selector.addEventListener("change", updateButtonState);
+    });
+    updateButtonState();
+}
+
+async function updateTableData() {
+    const selectors = DOM.selectors;
+    if (!DOM.selectors[0].checkValidity()) return;
+
+    const tableData = await getTableData(selectors[0].value, selectors[1].value);
+    try {
+    renderTable(tableData);
+    } catch (error) {
+        console.log(error.message);
     }
+}
+
+function attachSelectorListenersToRenderTable() {
+    DOM.selectors.forEach(selector => {
+        selector.addEventListener("change", updateTableData);
+    })
+    updateTableData();
+}
+
+function blockUI() {
+    DOM.overlay.classList.remove('hidden');
+}
+
+function unblockUI() {
+    DOM.overlay.classList.add('hidden');
+}
+
+async function pollScheduleStatus(scheduleId) {
+    polling: while (true) {
+        const rawData = await fetch(`http://127.0.0.1:5000/api/schedule/status/${scheduleId}`);
+        const response = await rawData.json()
+        console.log(response)
+
+        switch (response.status) {
+            case "error":
+                throw new Error(`Ошибка генерации графика: ${response.message}`);
+            case "optimal":
+                console.log(response.message);
+                break polling;
+        }
+        await new Promise(resolve => setTimeout(resolve, 10000));
+    }
+}
+
+export async function init() {
+
+    const lastScheduleId = localStorage.getItem(LAST_SCHEDULE_ID_KEY);
+    if (lastScheduleId) {
+        const rawData = await fetch(`http://127.0.0.1:5000/api/schedule/status/${lastScheduleId}`);
+        const response = await rawData.json();
+        if (response.status === "processing") {
+            blockUI()
+            showLoadingSpinner()
+            pollScheduleStatus(lastScheduleId);
+        }
+    }
+
+    const rawDataSchedules = await fetch("http://127.0.0.1:5000/api/schedules");
+    const schedules = await rawDataSchedules.json()
+
+    if (schedules.length === 0) changeUItoGenerateSchedule()
+    else await changeUItoChooseSchedule(schedules);
+
+    DOM.btnGenerate.addEventListener("click", async () => {
+        if (DOM.btnGenerate.innerHTML.trim() === `Начать генерацию`) {
+            await generateButtonCase(DOM.selectors[0], DOM.selectors[1]);
+        } else if (DOM.btnGenerate.innerHTML.trim() === `Сформировать график`) {
+            changeUItoGenerateSchedule(schedules)
+        }
+    });
 }

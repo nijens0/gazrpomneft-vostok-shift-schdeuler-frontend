@@ -3,7 +3,7 @@
         <div class="selectors">
             <select class="selector" aria-label="Участок" required>
                 <option disabled value="" selected>Промысел</option>
-                <option value="УППН">УППН</option>
+                <option value="1">УППН</option>
             </select>
             <select class="selector" aria-label="Промысел" required>
                 <option disabled value="" selected>Участок</option>
@@ -11,31 +11,16 @@
                 <option value="2">НГДП-2К</option>
                 <option value="3">НГДП-4</option>
             </select>
-            <select class="selector" aria-label="Месяц" required>
-                <option disabled value="" selected>Месяц</option>
-                <option value="1">Январь</option>
-                <option value="2">Февраль</option>
-                <option value="3">Март</option>
-                <option value="4">Апрель</option>
-                <option value="5">Май</option>
-                <option value="6">Июнь</option>
-                <option value="7">Июль</option>
-                <option value="8">Август</option>
-                <option value="9">Сентябрь</option>
-                <option value="10">Октябрь</option>
-                <option value="11">Ноябрь</option>
-                <option value="12">Декабрь</option>
-            </select>
         </div>
-        <button class="toolbar-button">
+        <button class="toolbar-button import">
             <img class="toolbar-icon" src="/static/icons/download.svg" alt="Иконка импорта"/>
             Импорт из Excel
         </button>
-        <button class="toolbar-button">
+        <button class="toolbar-button export">
             <img class="toolbar-icon" src="/static/icons/export.svg" alt="Иконка экспорта"/>
             Экспорт в Excel
         </button>
-        <button class="add-button">
+        <button class="add-button" disabled>
             Сформировать график
         </button>
     </section>
@@ -171,3 +156,6 @@
         </div>
     </section>
 </section>
+<div id="loading-overlay" class="loading-overlay hidden">
+    Генерирую график, подождите...
+</div>
