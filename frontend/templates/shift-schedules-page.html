@@ -1,18 +1,18 @@
 <section class="page">
     <section class="toolbar">
         <div class="selectors">
-            <select class="selector" aria-label="Выбрать промысел">
-                <option disabled value="" selected>Не выбрано</option>
+            <select class="selector" aria-label="Промысел" required>
+                <option disabled value="" selected>Промысел</option>
                 <option value="УППН">УППН</option>
             </select>
-            <select class="selector" aria-label="Выбрать участок">
-                <option disabled value="" selected>Не выбрано</option>
-                <option value="НГДП-1">НГДП-1</option>
-                <option value="НГДП-2">НГДП-2</option>
-                <option value="НГДП-3">НГДП-3</option>
+            <select class="selector" aria-label="Участок" required>
+                <option disabled value="" selected>Участок</option>
+                <option value="1">НГДП-2</option>
+                <option value="2">НГДП-2К</option>
+                <option value="3">НГДП-4</option>
             </select>
-            <select class="selector" aria-label="month">
-                <option disabled value="" selected>Не выбрано</option>
+            <select class="selector" aria-label="Месяц" required>
+                <option disabled value="" selected>Месяц</option>
                 <option value="1">Январь</option>
                 <option value="2">Февраль</option>
                 <option value="3">Март</option>
@@ -40,15 +40,14 @@
         </button>
     </section>
     <div class="table-container">
-        <table class="table">
+        <table class="table schedules">
             <thead>
             <tr>
                 <th rowspan="2" class="sticky-col">ФИО</th>
                 <th rowspan="2">ДОЛЖНОСТЬ</th>
                 <th rowspan="2">РАЗРЯД</th>
                 <th rowspan="2">ТАБ. №</th>
-                <th rowspan="2">ВАХТОВЫЙ МЕТОД</th>
-                <th rowspan="2">ШАБЛОН</th>
+                <th rowspan="2">МЕТОД <br>ВАХТЫ</th>
                 <th colspan="31">ГРАФИК ВЫХОДНА НА РАБОТУ ПО ЧИСЛАМ МЕСЯЦА</th>
                 <th colspan="5">ИТОГО ОТРАБОТАНО ЗА МЕСЯЦ</th>
             </tr>
