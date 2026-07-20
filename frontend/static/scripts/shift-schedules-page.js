@@ -273,20 +273,14 @@ function handleExportClick() {
 
 }
 
-function changeUItoGenerateSchedule() {
+async function changeUItoGenerateSchedule() {
     DOM.selectors[0].outerHTML = `
                 <select class="selector" aria-label="Участок" required>
                     <option disabled value="" selected>Промысел</option>
                     <option value="1">УППН</option>
                 </select>`;
 
-    DOM.selectors[1].outerHTML = `
-                <select class="selector" aria-label="Промысел" required>
-                    <option disabled value="" selected>Участок</option>
-                    <option value="1">НГДП-2</option>
-                    <option value="2">НГДП-2К</option>
-                    <option value="3">НГДП-4</option>
-                </select>`;
+    await loadFacilities()
 
     DOM.btnGenerate.innerHTML = `Начать генерацию`
     DOM.btnGenerate.disabled = true;
@@ -389,8 +383,19 @@ async function initScheduleUI() {
     const rawDataSchedules = await fetch("http://127.0.0.1:5000/api/schedules");
     const schedules = await rawDataSchedules.json()
 
-    if (schedules.length === 0) changeUItoGenerateSchedule()
+    if (schedules.length === 0) await changeUItoGenerateSchedule()
     else await changeUItoChooseSchedule();
+}
+
+async function loadFacilities() {
+    const rawData = await fetch("http://127.0.0.1:5000/api/facilities");
+    const response = await rawData.json();
+
+    const facilitySelector = DOM.selectors[1];
+    facilitySelector.innerHTML = `<option disabled value="" selected>Участок</option>`
+    response.forEach(facility => {
+        facilitySelector.add(new Option(facility.facility_name, facility.facility_id));
+    });
 }
 
 export async function init() {
@@ -403,7 +408,7 @@ export async function init() {
         if (DOM.btnGenerate.innerHTML.trim() === `Начать генерацию`) {
             await generateButtonCase(DOM.selectors[0], DOM.selectors[1]);
         } else if (DOM.btnGenerate.innerHTML.trim() === `Сформировать график`) {
-            changeUItoGenerateSchedule()
+            await changeUItoGenerateSchedule()
         }
     });
 }
