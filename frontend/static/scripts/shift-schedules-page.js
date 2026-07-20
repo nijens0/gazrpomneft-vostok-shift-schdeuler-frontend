@@ -349,7 +349,7 @@ async function handleExportClick() {
 async function changeUItoGenerateSchedule() {
     DOM.selectors[0].outerHTML = `
                 <select class="selector" aria-label="Участок" required>
-                    <option disabled value="" selected>Промысел</option>
+                    <option disabled value="" selected>Участок</option>
                     <option value="1">УППН</option>
                 </select>`;
 
@@ -465,7 +465,7 @@ async function loadFacilities() {
     const response = await rawData.json();
 
     const facilitySelector = DOM.selectors[1];
-    facilitySelector.innerHTML = `<option disabled value="" selected>Участок</option>`
+    facilitySelector.innerHTML = `<option disabled value="" selected>Промысел</option>`
     response.forEach(facility => {
         facilitySelector.add(new Option(facility.facility_name, facility.facility_id));
     });
