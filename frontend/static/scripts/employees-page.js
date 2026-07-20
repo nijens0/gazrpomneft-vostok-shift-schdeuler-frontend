@@ -31,7 +31,7 @@ function renderTable(users) {
         <td>${user.tab_number}</td>
         <td class="editable">${user.role_name}</td>
         <td class="editable">${user.rank}</td>
-        <td class="editable">Крапивинское</td>
+        <td class="editable">${user.facility_name}</td>
         <td class="editable">${user.department_name}</td>
         <td class="editable">${user.activity}</td>
         <td class="editable">${user.can_work_night}</td>
