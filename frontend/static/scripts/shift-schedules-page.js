@@ -159,7 +159,7 @@ function renderTable(monthlyScheduleInfo) {
             row1.innerHTML += `
                     <td rowspan="3" class="sticky-col">${employee.formatFullName()}</td>
                     <td rowspan="3">${roleName}</td>
-                    <td rowspan="3">${employee.rank}</td>
+                    <td rowspan="3">${employee.rank ?? ""}</td>
                     <td rowspan="3">${employee.tab_number}</td>
                     <td rowspan="3">${employee.work_method}</td>
                     ${symbols}
