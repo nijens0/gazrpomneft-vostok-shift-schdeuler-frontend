@@ -1,4 +1,4 @@
-class ScheduleInfo {
+class ScheduleResponse {
     constructor(data) {
         this.schedule_id = data.schedule_id;
         this.status = data.status;
@@ -155,9 +155,6 @@ function renderTable(monthlyScheduleInfo) {
                     <td rowspan="3">${employee.rank}</td>
                     <td rowspan="3">${employee.tab_number}</td>
                     <td rowspan="3">${employee.work_method}</td>
-                    <td rowspan="3">
-                        <select disabled><option>15/15 День</option></select>
-                    </td>
                     ${symbols}
                     <td rowspan="3">${employee.total_hours}</td>
                     <td rowspan="3">${employee.night_hours}</td>
@@ -175,29 +172,25 @@ function renderTable(monthlyScheduleInfo) {
     }
 }
 
-async function createAndLoadSchedule(scheduleId, month) {
+async function createAndLoadSchedule(month) {
     showLoadingSpinner()
 
     try {
-        // const scheduleInfo = await generateSchedule();
+        const scheduleResponse = await generateSchedule().json();
 
         polling: while (true) {
-            const response = await fetch(`http://127.0.0.1:5000/api/schedule/status/${scheduleId}`)
-            if (!response.ok) {
-                throw new Error(`Ошибка сервера ${response.status}`)
-            }
-            const data = await response.json()
-            console.log(data)
-            switch (data.status) {
+            const rawData = await fetch(`http://127.0.0.1:5000/api/schedule/status/${scheduleResponse.schedule_id}`)
+            const response = await rawData.json()
+            switch (response.status) {
                 case "error":
-                    break polling;
+                    throw new Error(`Ошибка генерации графика: ${response.message}`);
                 case "optimal":
                     break polling;
             }
             await new Promise(resolve => setTimeout(resolve, 10000));
         }
 
-        const data = await getTableData(scheduleId, month);
+        const data = await getTableData(scheduleResponse.schedule_id, month);
 
         renderTable(data);
     } catch (error) {
@@ -215,14 +208,9 @@ export function init() {
             console.log(`button clicked`)
 
 
-            await createAndLoadSchedule(4, monthSelector.value);
+            await createAndLoadSchedule(monthSelector.value);
         });
     } else {
         console.warn("Кнопка генерации не найдена на странице!")
     }
-    /* generateScheduleButton.addEventListener('click', async () => {
-        getTableData().then(data => {
-            renderTable(data.scheduleInfo, data.employees);
-        })
-    }); */
 }
