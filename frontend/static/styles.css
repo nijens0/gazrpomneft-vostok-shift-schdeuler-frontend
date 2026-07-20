@@ -665,6 +665,7 @@ body {
 }
 
 .nav-container-icon {
+    flex-shrink: 0;
     width: 50px;
     height: 50px;
     border-radius: var(--border-radius);
@@ -681,6 +682,12 @@ body {
     background-color: var(--light-green);
 }
 
+.nav-container-card {
+    display:flex;
+    flex-direction: column;
+    min-height:150px;
+}
+
 .nav-container-element-title {
     font-weight: 600;
     font-size: 20px;
@@ -688,6 +695,7 @@ body {
 }
 
 .nav-container-element-text {
+    flex-grow: 1;
     font-weight: 500;
     font-size: 14px;
     line-height: 1.625rem;
@@ -697,7 +705,6 @@ body {
 .nav-container-footer {
     display: flex;
     align-items: center;
-    margin-top: 24px;
     column-gap: 8px;
     font-family: var(--font-family), serif;
     font-weight: 600;
@@ -710,6 +717,10 @@ body {
 
 .nav-container-footer.agreement {
     color: var(--green);
+}
+
+.shift-schedules-redirect {
+    min-width: 283px;
 }
 
 .main-footer {
