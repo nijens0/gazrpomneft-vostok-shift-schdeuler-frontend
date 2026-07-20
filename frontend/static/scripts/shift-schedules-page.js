@@ -353,7 +353,7 @@ async function pollScheduleStatus(scheduleId) {
             case "error":
                 throw new Error(`Ошибка генерации графика: ${response.message}`);
             case "optimal":
-                console.log(response.message);
+                unblockUI();
                 break polling;
         }
         await new Promise(resolve => setTimeout(resolve, 10000));
