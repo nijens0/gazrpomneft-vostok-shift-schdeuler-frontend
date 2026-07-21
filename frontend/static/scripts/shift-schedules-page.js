@@ -464,11 +464,23 @@ async function loadFacilities() {
     const rawData = await fetch("http://127.0.0.1:5000/api/facilities");
     const response = await rawData.json();
 
-    const facilitySelector = DOM.selectors[1];
-    facilitySelector.innerHTML = `<option disabled value="" selected>Промысел</option>`
+    const newFacilitySelector = document.createElement("select");
+    newFacilitySelector.classList.add("selector");
+    newFacilitySelector.required = true;
+    newFacilitySelector.ariaLabel = "Промысел";
+
+    const defaultOption = document.createElement("option");
+    defaultOption.disabled = true;
+    defaultOption.value = "";
+    defaultOption.selected = true;
+    defaultOption.textContent = "Промысел";
+    newFacilitySelector.appendChild(defaultOption);
+
     response.forEach(facility => {
-        facilitySelector.add(new Option(facility.facility_name, facility.facility_id));
+        newFacilitySelector.add(new Option(facility.facility_name, facility.facility_id));
     });
+
+    DOM.selectors[1].replaceWith(newFacilitySelector);
 }
 
 export async function init() {
