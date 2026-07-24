@@ -370,6 +370,8 @@ svg * {
     --dark-gray: #64748B;
     --light-green: #E5F0E9;
     --green: #006E2A;
+    --light-orange: #FEF2E9;
+    --orange: #AE591C;
     --day-shift: #CBF6CB;
     --night-shift: #D1EAF1;
     --rest-and-trips: #E8ECEF;
@@ -680,20 +682,26 @@ body {
     height: 50px;
     border-radius: var(--border-radius);
     padding: 10px;
-}
 
-.nav-container-icon.shifts {
-    color: var(--blue);
-    background-color: var(--light-light-blue);
-}
+    &.shift-schedules {
+        color: var(--blue);
+        background-color: var(--light-light-blue);
+    }
 
-.nav-container-icon.agreement {
-    color: var(--green);
-    background-color: var(--light-green);
+    &.agreements {
+        color: var(--green);
+        background-color: var(--light-green);
+    }
+
+    &.vacations {
+        color: var(--orange);
+        background-color: var(--light-orange);
+    }
 }
 
 .nav-container-card {
     display:flex;
+    flex-grow: 1;
     flex-direction: column;
     min-height:150px;
 }
@@ -719,18 +727,24 @@ body {
     font-family: var(--font-family), serif;
     font-weight: 600;
     font-size: var(--fs-md);
-}
 
-.nav-container-footer.shift-schedules {
-    color: var(--blue);
-}
+    &.shift-schedules {
+        color: var(--blue);
+    }
 
-.nav-container-footer.agreement {
-    color: var(--green);
+    &.agreements {
+        color: var(--green);
+    }
+
+    &.vacations {
+        color: var(--orange);
+    }
 }
 
 .shift-schedules-redirect {
+    height: 315px;
     min-width: 283px;
+    max-width: 330px;
 }
 
 .main-footer {
