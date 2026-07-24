@@ -383,6 +383,16 @@ svg * {
     --border: 1px solid #C3C6D6;
 
     --transition-duration: 0.2s;
+
+    --fs-10: 10px;
+    --fs-12: 12px;
+    --fs-14: 14px;
+    --fs-16: 16px;
+    --fs-18: 18px;
+    --fs-20: 20px;
+    --fs-22: 22px;
+    --fs-24: 24px;
+    --fs-34: 34px;
 }
 
 body {
@@ -449,7 +459,7 @@ body {
     margin-top: 32px;
     font-family: var(--font-family), serif;
     font-weight: 500;
-    font-size: 15px;
+    font-size: var(--fs-16);
 }
 
 .side-menu-element {
@@ -460,7 +470,7 @@ body {
     align-items: center;
     font-family: var(--font-family), serif;
     font-weight: 500;
-    font-size: 14px;
+    font-size: var(--fs-14);
     column-gap: 12px;
 }
 
@@ -482,14 +492,14 @@ body {
 .header-title {
     font-family: var(--font-family), serif;
     font-weight: 700;
-    font-size: 20px;
+    font-size: var(--fs-20);
     color: white
 }
 
 .header-subtitle {
     font-family: var(--font-family), serif;
     font-weight: 600;
-    font-size: 10px;
+    font-size: var(--fs-10);
     letter-spacing: 2px;
     color: var(--light-gray);
 }
@@ -537,12 +547,12 @@ body {
 
 .app-name {
     font-weight: 700;
-    font-size: 12px;
+    font-size: var(--fs-12);
     color: white
 }
 
 .version {
-    font-size: 10px;
+    font-size: var(--fs-10);
     font-weight: 400;
     color: var(--gray);
 }
@@ -567,7 +577,7 @@ body {
 .page-name {
     font-family: var(--font-family), serif;
     font-weight: 600;
-    font-size: 24px;
+    font-size: var(--fs-24);
     flex-grow: 1;
 }
 
@@ -597,13 +607,13 @@ body {
 
 .user-role {
     font-weight: 700;
-    font-size: 14px;
+    font-size: var(--fs-14);
     color: black
 }
 
 .department {
     font-weight: 500;
-    font-size: 12px;
+    font-size: var(--fs-12);
     color: var(--dark-gray);
 }
 
@@ -617,7 +627,7 @@ body {
 }
 
 .current-date {
-    font-size: 24px;
+    font-size: var(--fs-24);
     font-weight: 600;
 }
 
@@ -690,14 +700,14 @@ body {
 
 .nav-container-element-title {
     font-weight: 600;
-    font-size: 20px;
+    font-size: var(--fs-20);
     margin-bottom: 10px;
 }
 
 .nav-container-element-text {
     flex-grow: 1;
     font-weight: 500;
-    font-size: 14px;
+    font-size: var(--fs-14);
     line-height: 1.625rem;
     color: var(--dark-gray)
 }
@@ -708,7 +718,7 @@ body {
     column-gap: 8px;
     font-family: var(--font-family), serif;
     font-weight: 600;
-    font-size: 14px;
+    font-size: var(--fs-14);
 }
 
 .nav-container-footer.shift-schedules {
@@ -741,7 +751,7 @@ body {
 
 .main-footer-title {
     font-weight: 600;
-    font-size: 12px;
+    font-size: var(--fs-12);
     color: var(--blue-gray);
 }
 
@@ -750,13 +760,13 @@ body {
     align-items: baseline;
     column-gap: 6px;
     font-weight: 700;
-    font-size: 22px;
+    font-size: var(--fs-22);
 }
 
 .main-footer-card-info.secondary {
     color: var(--dark-gray);
     font-weight: 500;
-    font-size: 12px;
+    font-size: var(--fs-12);
 }
 
 .page {
@@ -846,13 +856,13 @@ body {
     color: var(--light-light-blue);
     font-weight: 500;
     text-transform: uppercase;
-    font-size: 14px
+    font-size: var(--fs-14)
 }
 
 .employees-stats {
     color: white;
     font-weight: 700;
-    font-size: 34px;
+    font-size: var(--fs-34);
 }
 
 .employees-stats-dynamic {
@@ -863,7 +873,7 @@ body {
     background-color: #3364AF;
     border-radius: calc(var(--border-radius) * 2);
     color: white;
-    font-size: 12px;
+    font-size: var(--fs-12);
     font-weight: 400;
 }
 
@@ -877,7 +887,7 @@ body {
     overflow: hidden;
     overflow-x: auto;
     font-family: var(--font-family), serif;
-    font-size: 12px;
+    font-size: var(--fs-12);
     &::-webkit-scrollbar {
         display: none;
     }
@@ -923,7 +933,7 @@ td.sticky-col {
     background-color: white !important;
     padding: 12px 50px 12px 12px !important;
     color: black !important;
-    font-size: 14px !important;
+    font-size: var(--fs-14) !important;
     font-weight: 500 !important;
 }
 
@@ -935,7 +945,7 @@ td.sticky-col {
 .table th {
     padding: 12px;
     text-align: left;
-    font-size: 12px;
+    font-size: var(--fs-12);
     font-weight: 600;
     border-right: 1px solid var(--gray);
     border-bottom: 1px solid var(--gray);
@@ -960,7 +970,7 @@ td.sticky-col {
 .table td {
     padding: 12px;
     font-weight: 400;
-    font-size: 12px;
+    font-size: var(--fs-12);
     color: var(--blue-gray);
     border-right: 1px solid var(--gray);
     border-bottom: 1px solid var(--gray);
@@ -989,7 +999,7 @@ td.sticky-col {
     background-color: transparent;
     border: none;
     font-family: var(--font-family), serif;
-    font-size: 18px;
+    font-size: var(--fs-18);
     text-transform: uppercase;
     font-weight: 600;
     padding-inline: 6px;
@@ -1027,7 +1037,7 @@ td.sticky-col {
     grid-row: 1;
     font-weight: 500;
     text-transform: uppercase;
-    font-size: 16px;
+    font-size: var(--fs-16);
     margin-left: -1.5px;
     margin-bottom: 10px;
 }
@@ -1039,7 +1049,7 @@ td.sticky-col {
 
 .memo-container div span:last-of-type {
     color: var(--gray);
-    font-size: 14px;
+    font-size: var(--fs-14);
 }
 
 .badge {
@@ -1050,7 +1060,7 @@ td.sticky-col {
     height: 24px;
     border-radius: 4px;
     font-weight: 700;
-    font-size: 11px;
+    font-size: var(--fs-10);
     text-transform: uppercase;
     margin-right: 12px;
 }
