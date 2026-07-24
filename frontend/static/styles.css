@@ -384,15 +384,15 @@ svg * {
 
     --transition-duration: 0.2s;
 
-    --fs-10: 10px;
-    --fs-12: 12px;
-    --fs-14: 14px;
-    --fs-16: 16px;
-    --fs-18: 18px;
-    --fs-20: 20px;
-    --fs-22: 22px;
-    --fs-24: 24px;
-    --fs-34: 34px;
+    --fs-xs: 10px;
+    --fs-sm: 12px;
+    --fs-md: 14px;
+    --fs-lg: 16px;
+    --fs-xl: 18px;
+    --fs-2xl: 20px;
+    --fs-3xl: 22px;
+    --fs-4xl: 24px;
+    --fs-5xl: 34px;
 }
 
 body {
@@ -459,7 +459,7 @@ body {
     margin-top: 32px;
     font-family: var(--font-family), serif;
     font-weight: 500;
-    font-size: var(--fs-16);
+    font-size: var(--fs-lg);
 }
 
 .side-menu-element {
@@ -470,7 +470,7 @@ body {
     align-items: center;
     font-family: var(--font-family), serif;
     font-weight: 500;
-    font-size: var(--fs-14);
+    font-size: var(--fs-md);
     column-gap: 12px;
 }
 
@@ -492,14 +492,14 @@ body {
 .header-title {
     font-family: var(--font-family), serif;
     font-weight: 700;
-    font-size: var(--fs-20);
+    font-size: var(--fs-2xl);
     color: white
 }
 
 .header-subtitle {
     font-family: var(--font-family), serif;
     font-weight: 600;
-    font-size: var(--fs-10);
+    font-size: var(--fs-xs);
     letter-spacing: 2px;
     color: var(--light-gray);
 }
@@ -547,12 +547,12 @@ body {
 
 .app-name {
     font-weight: 700;
-    font-size: var(--fs-12);
+    font-size: var(--fs-sm);
     color: white
 }
 
 .version {
-    font-size: var(--fs-10);
+    font-size: var(--fs-xs);
     font-weight: 400;
     color: var(--gray);
 }
@@ -577,7 +577,7 @@ body {
 .page-name {
     font-family: var(--font-family), serif;
     font-weight: 600;
-    font-size: var(--fs-24);
+    font-size: var(--fs-4xl);
     flex-grow: 1;
 }
 
@@ -607,13 +607,13 @@ body {
 
 .user-role {
     font-weight: 700;
-    font-size: var(--fs-14);
+    font-size: var(--fs-md);
     color: black
 }
 
 .department {
     font-weight: 500;
-    font-size: var(--fs-12);
+    font-size: var(--fs-sm);
     color: var(--dark-gray);
 }
 
@@ -627,7 +627,7 @@ body {
 }
 
 .current-date {
-    font-size: var(--fs-24);
+    font-size: var(--fs-4xl);
     font-weight: 600;
 }
 
@@ -700,14 +700,14 @@ body {
 
 .nav-container-element-title {
     font-weight: 600;
-    font-size: var(--fs-20);
+    font-size: var(--fs-2xl);
     margin-bottom: 10px;
 }
 
 .nav-container-element-text {
     flex-grow: 1;
     font-weight: 500;
-    font-size: var(--fs-14);
+    font-size: var(--fs-md);
     line-height: 1.625rem;
     color: var(--dark-gray)
 }
@@ -718,7 +718,7 @@ body {
     column-gap: 8px;
     font-family: var(--font-family), serif;
     font-weight: 600;
-    font-size: var(--fs-14);
+    font-size: var(--fs-md);
 }
 
 .nav-container-footer.shift-schedules {
@@ -751,7 +751,7 @@ body {
 
 .main-footer-title {
     font-weight: 600;
-    font-size: var(--fs-12);
+    font-size: var(--fs-sm);
     color: var(--blue-gray);
 }
 
@@ -760,13 +760,13 @@ body {
     align-items: baseline;
     column-gap: 6px;
     font-weight: 700;
-    font-size: var(--fs-22);
+    font-size: var(--fs-3xl);
 }
 
 .main-footer-card-info.secondary {
     color: var(--dark-gray);
     font-weight: 500;
-    font-size: var(--fs-12);
+    font-size: var(--fs-sm);
 }
 
 .page {
@@ -856,13 +856,13 @@ body {
     color: var(--light-light-blue);
     font-weight: 500;
     text-transform: uppercase;
-    font-size: var(--fs-14)
+    font-size: var(--fs-md)
 }
 
 .employees-stats {
     color: white;
     font-weight: 700;
-    font-size: var(--fs-34);
+    font-size: var(--fs-5xl);
 }
 
 .employees-stats-dynamic {
@@ -873,7 +873,7 @@ body {
     background-color: #3364AF;
     border-radius: calc(var(--border-radius) * 2);
     color: white;
-    font-size: var(--fs-12);
+    font-size: var(--fs-sm);
     font-weight: 400;
 }
 
@@ -887,7 +887,7 @@ body {
     overflow: hidden;
     overflow-x: auto;
     font-family: var(--font-family), serif;
-    font-size: var(--fs-12);
+    font-size: var(--fs-sm);
     &::-webkit-scrollbar {
         display: none;
     }
@@ -933,7 +933,7 @@ td.sticky-col {
     background-color: white !important;
     padding: 12px 50px 12px 12px !important;
     color: black !important;
-    font-size: var(--fs-14) !important;
+    font-size: var(--fs-md) !important;
     font-weight: 500 !important;
 }
 
@@ -945,7 +945,7 @@ td.sticky-col {
 .table th {
     padding: 12px;
     text-align: left;
-    font-size: var(--fs-12);
+    font-size: var(--fs-sm);
     font-weight: 600;
     border-right: 1px solid var(--gray);
     border-bottom: 1px solid var(--gray);
@@ -970,7 +970,7 @@ td.sticky-col {
 .table td {
     padding: 12px;
     font-weight: 400;
-    font-size: var(--fs-12);
+    font-size: var(--fs-sm);
     color: var(--blue-gray);
     border-right: 1px solid var(--gray);
     border-bottom: 1px solid var(--gray);
@@ -999,7 +999,7 @@ td.sticky-col {
     background-color: transparent;
     border: none;
     font-family: var(--font-family), serif;
-    font-size: var(--fs-18);
+    font-size: var(--fs-xl);
     text-transform: uppercase;
     font-weight: 600;
     padding-inline: 6px;
@@ -1037,7 +1037,7 @@ td.sticky-col {
     grid-row: 1;
     font-weight: 500;
     text-transform: uppercase;
-    font-size: var(--fs-16);
+    font-size: var(--fs-lg);
     margin-left: -1.5px;
     margin-bottom: 10px;
 }
@@ -1049,7 +1049,7 @@ td.sticky-col {
 
 .memo-container div span:last-of-type {
     color: var(--gray);
-    font-size: var(--fs-14);
+    font-size: var(--fs-md);
 }
 
 .badge {
@@ -1060,7 +1060,7 @@ td.sticky-col {
     height: 24px;
     border-radius: 4px;
     font-weight: 700;
-    font-size: var(--fs-10);
+    font-size: var(--fs-xs);
     text-transform: uppercase;
     margin-right: 12px;
 }
