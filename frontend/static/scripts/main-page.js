@@ -21,4 +21,8 @@ export function init() {
     shiftSchedulesRedirectButtons[1].addEventListener('click', () => {
         window.location.href = `/agreement-page.html`
     })
+
+    shiftSchedulesRedirectButtons[2].addEventListener('click', () => {
+        window.location.href = `/vacations-page.html`
+    })
 }
