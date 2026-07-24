@@ -75,6 +75,15 @@ const DOM = {
     }
 };
 
+const shiftColors = {
+    'Я': 'var(--day-shift)', 'Яз': 'var(--day-shift)', 'Яп': 'var(--day-shift)', 'Яв': 'var(--day-shift)',
+    'Н': 'var(--night-shift)', 'Нз': 'var(--night-shift)', 'Нп': 'var(--night-shift)', 'Нв': 'var(--night-shift)',
+    'В': 'var(--rest-and-trips)', 'ЕО': 'var(--rest-and-trips)',
+    'Д': 'var(--on-the-road-or-trips)',
+    'От': 'var(--vacations)', 'До': 'var(--vacations)',
+    'У': 'var(--special)', 'К': 'var(--special)', 'МВ': 'var(--special)'
+};
+
 function buildSelector({ ariaLabel, defaultText, items, getLabel, getValue }) {
     const select = document.createElement("select");
     select.classList.add("selector");
@@ -175,14 +184,6 @@ function renderTable(monthlyScheduleInfo, targetTbody = null) {
             let dayHours = '';
             let nightHours = '';
 
-            const shiftColors = {
-                'Я': '#CBF6CB', 'Яз': '#CBF6CB', 'Яп': '#CBF6CB', 'Яв': '#CBF6CB',
-                'Н': '#D1EAF1', 'Нз': '#D1EAF1', 'Нп': '#D1EAF1', 'Нв': '#D1EAF1',
-                'В': '#E8ECEF', 'ЕО': '#E8ECEF',
-                'Д': '#FCEAB0',
-                'От': '#FBD2B3', 'До': '#FBD2B3',
-                'У': '#E2D9F5', 'К': '#E2D9F5', 'МВ': '#E2D9F5'
-            };
 
             for (let i = 0; i <= 30; i++) {
                 const shiftVal = employee.row_1_shift[i] || '';
