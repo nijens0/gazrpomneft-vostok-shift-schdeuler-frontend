@@ -959,14 +959,6 @@ td.sticky-col {
     background-color: white;
 }
 
-
-/*.table td:first-of-type {*/
-/*    padding: 12px 50px 12px 12px;*/
-/*    color: black;*/
-/*    font-size: 14px;*/
-/*    font-weight: 500;*/
-/*}*/
-
 .table td {
     padding: 12px;
     font-weight: 400;
