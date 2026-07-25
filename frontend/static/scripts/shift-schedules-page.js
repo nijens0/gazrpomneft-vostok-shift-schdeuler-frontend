@@ -190,8 +190,8 @@ function renderTable(monthlyScheduleInfo, targetTbody = null) {
                 const bgColor = shiftColors[shiftVal] || 'transparent';
 
                 symbols += `<td style="background-color: ${bgColor}">${employee.row_1_shift[i] ?? ""}</td>`;
-                dayHours += `<td>${employee.row_2_day_hours[i] ?? ""}</td>`;
-                nightHours += `<td>${employee.row_3_night_hours[i] ?? ""}</td>`;
+                dayHours += `<td class="cell-center">${employee.row_2_day_hours[i] ?? ""}</td>`;
+                nightHours += `<td class="cell-center">${employee.row_3_night_hours[i] ?? ""}</td>`;
             }
 
             row1.innerHTML += `
