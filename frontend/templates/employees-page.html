@@ -10,12 +10,12 @@
                       stroke="#94A3B8" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
         </div>
-        <button class="toolbar-button">
+        <button class="toolbar-button import">
             <img class="toolbar-icon" src="/static/icons/download.svg" alt="Иконка импорта"/>
             Импорт из Excel
         </button>
-        <button class="toolbar-button">
-            <img onclick="exportEmployeesTable()" class="toolbar-icon" src="/static/icons/export.svg" alt="Иконка экспорта"/>
+        <button class="toolbar-button export">
+            <img class="toolbar-icon" src="/static/icons/export.svg" alt="Иконка экспорта"/>
             Экспорт в Excel
         </button>
         <button class="add-button">
@@ -24,7 +24,7 @@
         </button>
     </section>
     <div class="table-container">
-        <table class="table employees" id="employees-table">
+        <table class="table employees">
             <thead>
             <tr>
                 <th class="sticky-col">ФИО</th>

@@ -415,7 +415,6 @@ body {
 
     &.is-collapsed {
         transition-duration: var(--transition-duration);
-
         min-width: 0;
         flex-shrink: 0;
         padding-right: 6px;
