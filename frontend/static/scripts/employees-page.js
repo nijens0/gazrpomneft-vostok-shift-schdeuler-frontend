@@ -202,6 +202,13 @@ function importEmployeesTable(event) {
     event.target.value = '';
 }
 
+function resetEditContainer(editContainer) {
+    editContainer.innerHTML =
+        `<img class="edit-button" src="/static/icons/pencil.png" alt="Редактирование">
+         <img class="delete-button" src="/static/icons/bin.png" alt="Удалить">
+        `
+}
+
 export function init() {
 
     DOM.btnExport.addEventListener('click', exportEmployeesTable);
@@ -224,7 +231,9 @@ export function init() {
             const target = e.target;
 
             if (target.classList.contains("edit-button")) {
+                if (DOM.table.classList.contains("edits")) return;
                 backup = []
+                DOM.table.classList.add('edits')
 
                 const tr = target.closest('tr');
                 const cells = tr.querySelectorAll('.editable');
@@ -253,33 +262,27 @@ export function init() {
                 cells.forEach(td => {
                     const input = td.querySelector('input');
 
-                    td.innerHTML = input.value.trim();
+                    td.textContent = input.value.trim();
                 })
 
                 const editContainer = target.closest('.edit-container')
-                editContainer.innerHTML =
-                    `<img class="edit-button" src="/static/icons/pencil.png" alt="Редактирование">
-                     <img class="delete-button" src="/static/icons/bin.png" alt="Удалить">
-                    `
+                resetEditContainer(editContainer);
+
+                DOM.table.classList.remove('edits')
             } else if (target.classList.contains("cancel-button")) {
-                backup = []
 
                 const tr = target.closest('tr');
                 const cells = tr.querySelectorAll('.editable');
 
-                cells.forEach(td => {
-                    const input = td.querySelector('input');
+                cells.forEach((td, index) => {
+                    td.textContent = backup[index]
+                });
 
-                    td.innerHTML = input.value.trim();
-                })
+                const editContainer = target.closest('.edit-container');
+                resetEditContainer(editContainer)
 
-                const editContainer = target.closest('.edit-container')
-                editContainer.innerHTML =
-                    `<img class="edit-button" src="/static/icons/pencil.png" alt="Редактирование">
-                     <img class="delete-button" src="/static/icons/bin.png" alt="Удалить">
-                    `
+                DOM.table.classList.remove('edits')
             } else if (target.classList.contains("delete-button")) {
-                backup = []
 
                 const tr = target.closest('tr');
                 tr.remove();
