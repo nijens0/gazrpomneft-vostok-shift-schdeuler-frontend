@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="description" content="Планировщик вахт для Газпромнефть-Восток">
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
@@ -10,9 +11,9 @@
     <title>Вахтовые графики</title>
 </head>
 <body>
-<script src="{{ url_for('static', filename='scripts/xlsx.full.min.js') }}"></script>
-<script src="{{ url_for('static', filename='scripts/sidebar.js') }}" defer></script>
-<script type="module" src="{{ url_for('static', filename='scripts/routing.js') }}"></script>
+<script defer src="{{ url_for('static', filename='scripts/xlsx.full.min.js') }}"></script>
+<script defer src="{{ url_for('static', filename='scripts/sidebar.js') }}"></script>
+<script defer type="module" src="{{ url_for('static', filename='scripts/routing.js') }}"></script>
 
 <aside class="side-menu">
     <header class="side-menu-header">
@@ -20,49 +21,49 @@
             <h1 class="header-title">Планировщик <br>вахт</h1>
             <span class="header-subtitle">ГАЗПРОМНЕФТЬ-ВОСТОК</span>
         </div>
-        <button class="header-burger">
+        <button class="header-burger" aria-label="Свернуть меню">
             <img src="{{ url_for('static', filename='icons/header-burger.svg') }}" alt="burger"/>
         </button>
     </header>
     <ul class="side-menu-list">
         <li>
-            <a class="side-menu-element is-active" href="main-page.html">
+            <a class="side-menu-element is-active" href="main-page.html" aria-label="Главная">
                 <img src="{{ url_for('static', filename='icons/main.svg') }}" alt="main"/>
                 Главная
             </a>
         </li>
         <li>
-            <a class="side-menu-element" href="employees-page.html">
+            <a class="side-menu-element" href="employees-page.html" aria-label="Сотрудники">
                 <img src="{{ url_for('static', filename='icons/employees.svg') }}" alt="employees"/>
                 Сотрудники
             </a>
         </li>
         <li>
-            <a class="side-menu-element" href="shift-schedules-page.html">
+            <a class="side-menu-element" href="shift-schedules-page.html" aria-label="Графики">
                 <img src="{{ url_for('static', filename='icons/shift-schedules.svg') }}" alt="shift-schedules"/>
                 Графики
             </a>
         </li>
         <li>
-            <a class="side-menu-element" href="vacations-page.html">
+            <a class="side-menu-element" href="vacations-page.html" aria-label="Отпуска">
                 <img src="{{ url_for('static', filename='icons/vacations.svg') }}" alt="vacations"/>
                 Отпуска
             </a>
         </li>
         <li>
-            <a class="side-menu-element" href="agreement-page.html">
+            <a class="side-menu-element" href="agreement-page.html" aria-label="Учёт">
                 <img src="{{ url_for('static', filename='icons/agreement.svg') }}" alt="agreement"/>
                 Учёт
             </a>
         </li>
         <li>
-            <a class="side-menu-element" href="reports-page.html">
+            <a class="side-menu-element" href="reports-page.html" aria-label="Отчёты">
                 <img src="{{ url_for('static', filename='icons/reports.svg') }}" alt="reports"/>
                 Отчёты
             </a>
         </li>
         <li>
-            <a class="side-menu-element" href="settings-page.html">
+            <a class="side-menu-element" href="settings-page.html" aria-label="Настройки">
                 <img src="{{ url_for('static', filename='icons/settings.svg') }}" alt="settings"/>
                 Настройки
             </a>
