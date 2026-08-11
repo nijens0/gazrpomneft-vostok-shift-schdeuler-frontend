@@ -333,6 +333,7 @@ button {
  */
 svg * {
     transition-property: fill, stroke;
+    pointer-events: none;
 }
 
 /**
@@ -1206,4 +1207,33 @@ td.sticky-col {
 
 .loading-overlay.hidden {
     display: none;
+}
+
+.dialog {
+    display: flex;
+    width: fit-content;
+    flex-direction: column;
+    margin: 24px;
+    overflow: hidden;
+    overflow-x: auto;
+    row-gap: 18px;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+.dialog-title {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--fs-3xl);
+}
+
+.dialog-employee-data {
+    display: flex;
+    flex-direction: column;
+    row-gap: 12px;
+    margin-block: 24px;
 }
