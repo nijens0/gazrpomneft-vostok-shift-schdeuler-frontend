@@ -1,7 +1,6 @@
 import {Employee} from "./shared.js";
+import {API_BASE_URL, API_ENDPOINTS} from "./api.js";
 /* global XLSX */
-
-const baseURL = "http://127.0.0.1:5000"
 
 const DOM = {
     get btnImport() {
@@ -58,7 +57,7 @@ const columns = [
 
 function renderTableHead() {
     const tableHead = DOM.tableHead;
-    columns.forEach((column,index) => {
+    columns.forEach((column, index) => {
         const cell = document.createElement('th')
         if (index === 0) cell.classList.add('sticky-col')
         cell.textContent = column.label;
@@ -68,14 +67,14 @@ function renderTableHead() {
 
 async function getUsers() {
     try {
-        const response = await fetch(`${baseURL}/api/employees`)
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getEmployees}`)
         const employeesJson = await response.json();
 
         if (!response.ok) {
             throw new Error(`Ошибка сервера ${response.status}`);
         }
 
-        return employeesJson.map(employeeData => new Employee(employeeData)).sort((a,b) => a.full_name.localeCompare(b.full_name));
+        return employeesJson.map(employeeData => new Employee(employeeData)).sort((a, b) => a.full_name.localeCompare(b.full_name));
     } catch (error) {
         console.log(error);
     }
@@ -342,7 +341,7 @@ function initModal() {
     const employeeData = document.createElement('div');
     employeeData.classList.add('dialog-employee-data')
     dialog.appendChild(employeeData);
-    columns.forEach( (col, index) => {
+    columns.forEach((col, index) => {
         if (index === columns.length - 1) return;
         const input = document.createElement('input');
         input.classList.add('table-input');
@@ -423,6 +422,8 @@ export function init() {
         renderTable(users);
 
         let backup = []
-        DOM.table.addEventListener("click", (e) => { editTableListeners(e,backup) });
+        DOM.table.addEventListener("click", (e) => {
+            editTableListeners(e, backup)
+        });
     });
 }

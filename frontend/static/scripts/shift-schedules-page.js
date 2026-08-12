@@ -1,6 +1,6 @@
+import {API_BASE_URL, API_ENDPOINTS} from "./api.js";
 /* global XLSX */
 
-const API_BASE = "http://127.0.0.1:5000/api";
 const LAST_SCHEDULE_ID_KEY = 'last-schedule-id';
 
 const ScheduleStatus = {
@@ -138,7 +138,7 @@ async function generateSchedule(department_id, year) {
         employee_overrides: []
     };
 
-    const response = await fetch(`${API_BASE}/schedule/generate`, {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.generateSchedule}`, {
         method: "POST",
         headers: {
             'Content-Type': 'application/json'
@@ -155,7 +155,7 @@ async function generateSchedule(department_id, year) {
 
 async function getTableData(scheduleId, month) {
     try {
-        const response = await fetch(`${API_BASE}/schedule/${scheduleId}?month=${month}`);
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getSchedule}/${scheduleId}?month=${month}`);
 
         if (!response.ok) {
             throw new Error(`Ошибка сервера ${response.status}`);
@@ -247,7 +247,7 @@ async function generateButtonCase(departmentSelector, facilitySelector) {
 
 async function changeUItoChooseSchedule() {
     try {
-        const rawDataSchedules = await fetch(`${API_BASE}/schedules`);
+        const rawDataSchedules = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getSchedules}`);
         const schedules = await rawDataSchedules.json();
 
         const scheduleSelector = buildSelector({
@@ -364,7 +364,7 @@ async function handleExportClick() {
 }
 
 async function loadFacilities() {
-    const rawData = await fetch(`${API_BASE}/facilities`);
+    const rawData = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getFacility}`);
     const response = await rawData.json();
 
     const facilitySelector = buildSelector({
@@ -442,7 +442,7 @@ function attachSelectorListenersToRenderTable() {
 
 async function pollScheduleStatus(scheduleId) {
     polling: while (true) {
-        const rawData = await fetch(`${API_BASE}/schedule/status/${scheduleId}`);
+        const rawData = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getScheduleStatus}/${scheduleId}`);
         const response = await rawData.json();
 
         switch (response.status) {
@@ -460,7 +460,7 @@ async function checkGenerationStatus() {
     const lastScheduleId = localStorage.getItem(LAST_SCHEDULE_ID_KEY);
     if (!lastScheduleId) return;
 
-    const rawData = await fetch(`${API_BASE}/schedule/status/${lastScheduleId}`);
+    const rawData = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getScheduleStatus}/${lastScheduleId}`);
     const response = await rawData.json();
 
     if (response.status !== ScheduleStatus.PROCESSING) {
@@ -486,7 +486,7 @@ async function checkGenerationStatus() {
 }
 
 async function initScheduleUI() {
-    const rawDataSchedules = await fetch(`${API_BASE}/schedules`);
+    const rawDataSchedules = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getSchedules}`);
     const schedules = await rawDataSchedules.json();
 
     if (schedules.length === 0) await changeUItoGenerateSchedule();
