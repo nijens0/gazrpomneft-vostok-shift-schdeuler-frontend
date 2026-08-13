@@ -38,6 +38,7 @@ const DOM = {
 const columns = [
     {key: 'full_name', label: 'ФИО'},
     {key: 'tab_number', label: 'ТАБ. №'},
+    {key: 'sex', label: 'ПОЛ'},
     {key: 'role_name', label: 'ДОЛЖНОСТЬ'},
     {key: 'rank', label: 'РАЗРЯД'},
     {key: 'facility_name', label: 'ПРОМЫСЕЛ'},
