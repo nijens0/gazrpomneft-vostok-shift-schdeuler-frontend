@@ -83,30 +83,27 @@ async function getUsers() {
 function getTableRow(user) {
     const row = document.createElement('tr');
 
-    row.innerHTML = `
-        <td class="sticky-col editable">${user.formatFullName()}</td>
-        <td class="editable">${user.tab_number}</td>
-        <td class="editable">${user.role_name}</td>
-        <td class="editable">${user.rank}</td>
-        <td class="editable">${user.facility_name}</td>
-        <td class="editable">${user.department_name}</td>
-        <td class="editable">${user.activity}</td>
-        <td class="editable">${user.can_work_night}</td>
-        <td class="editable">${user.senior}</td>
-        <td class="editable">${user.can_replace_boss}</td>
-        <td class="editable">0</td>
-        <td class="editable">${user.work_method}</td>
-        <td class="editable">Томск</td>
-        <td class="editable">Томск</td>
-        <td class="editable">Томск</td>
-        <td class="editable">КрапивМесторож</td>
-        <td>
-            <div class="edit-container">
-                <img class="edit-button" src="/static/icons/pencil.png" alt="Редактирование">
-                <img class="delete-button" src="/static/icons/bin.png" alt="Удалить">
-            </div>
-        </td>`;
+    for (let i = 0; i < columns.length - 1; i++) {
+        const td = document.createElement('td');
+        const key = columns[i].key;
 
+        td.dataset.key = key;
+        td.classList.add('editable');
+        if (i === 0) td.classList.add('sticky-col');
+
+        td.textContent = i === 0 ? user.formatFullName() : user[key];
+
+        row.appendChild(td);
+    }
+
+
+    const td = document.createElement('td');
+    const editContainer = document.createElement('div');
+    editContainer.classList.add('edit-container');
+    resetEditContainer(editContainer);
+    td.appendChild(editContainer);
+    row.appendChild(td);
+    
     return row;
 }
 
