@@ -104,7 +104,7 @@ function getTableRow(user) {
     resetEditContainer(editContainer);
     td.appendChild(editContainer);
     row.appendChild(td);
-    
+
     return row;
 }
 
@@ -285,11 +285,32 @@ function editTableListeners(e, backup) {
         const tr = target.closest('tr');
         const cells = tr.querySelectorAll('.editable');
 
+        const updateEmployee = {};
+        let tabNumber;
         cells.forEach(td => {
             const input = td.querySelector('input');
+            const key = td.dataset.key;
+            const value = input.value.trim();
 
-            td.textContent = input.value.trim();
-        })
+            if (key === "tab_number") tabNumber = value;
+            if (input.placeholder !== value) updateEmployee[key] = value;
+
+            td.textContent = value;
+        });
+
+        const updateEmployeeJSON = JSON.stringify(updateEmployee);
+        fetch(`${API_BASE_URL}${API_ENDPOINTS.updateEmployee(tabNumber)}`, {
+            method: "PATCH",
+            headers: {'Content-Type': 'application/json'},
+            body: updateEmployeeJSON
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error(`Ошибка сервера: ${response.status}`);
+            }
+            alert('Сотрудник успешно обновлён');
+        }).catch(error => {
+            alert(`Не удалось обновить данные: ${error.message}`);
+        });
 
         const editContainer = target.closest('.edit-container')
         resetEditContainer(editContainer);
