@@ -32,6 +32,12 @@ const DOM = {
     },
     get employeesStats() {
         return document.querySelector('.employees-stats')
+    },
+    get searchIcon() {
+        return document.querySelector('.search-icon')
+    },
+    get inputSearch() {
+        return document.querySelector('.search');
     }
 }
 
@@ -427,6 +433,26 @@ function initModal() {
     dialog.appendChild(div);
 }
 
+function findEmployee() {
+    const table = DOM.table;
+    const trs = table.querySelectorAll('tbody tr');
+
+    const value = DOM.inputSearch.value.trim();
+
+    for (let tr of trs) {
+        const fullName = tr.children[0].textContent.trim();
+        const tabNumber = tr.children[1].textContent.trim();
+
+        if ([fullName, tabNumber].includes(value)) {
+            tr.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+            return;
+        }
+    }
+}
+
 export function init() {
     initModal();
     renderTableHead();
@@ -436,6 +462,10 @@ export function init() {
     DOM.btnAddEmployee.addEventListener('click', () => {
         DOM.modal.showModal();
     });
+    DOM.inputSearch.addEventListener('keyup', (key) => {
+        if (key.key === 'Enter') findEmployee()
+    });
+    DOM.searchIcon.addEventListener('click', findEmployee);
 
     getUsers().then(users => {
         renderTable(users);
