@@ -84,7 +84,7 @@ const shiftColors = {
     'У': 'var(--special)', 'К': 'var(--special)', 'МВ': 'var(--special)'
 };
 
-function buildSelector({ ariaLabel, defaultText, items, getLabel, getValue }) {
+function buildSelector({ariaLabel, defaultText, items, getLabel, getValue}) {
     const select = document.createElement("select");
     select.classList.add("selector");
     select.required = true;
@@ -155,7 +155,7 @@ async function generateSchedule(department_id, year) {
 
 async function getTableData(scheduleId, month) {
     try {
-        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getSchedule}/${scheduleId}?month=${month}`);
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getSchedule(scheduleId, month)}`);
 
         if (!response.ok) {
             throw new Error(`Ошибка сервера ${response.status}`);
@@ -261,7 +261,7 @@ async function changeUItoChooseSchedule() {
         const monthSelector = buildSelector({
             ariaLabel: "Месяц",
             defaultText: "Месяц",
-            items: MONTH_NAMES.map((name, index) => ({ name, id: index + 1 })),
+            items: MONTH_NAMES.map((name, index) => ({name, id: index + 1})),
             getLabel: month => month.name,
             getValue: month => month.id
         });
@@ -344,9 +344,9 @@ async function handleExportClick() {
 
             worksheet['!cols'] = colWidths.map((w, colIdx) => {
                 if (colIdx >= 5 && colIdx <= 35) {
-                    return { wch: 4 };
+                    return {wch: 4};
                 }
-                return { wch: w < 10 ? 10 : w };
+                return {wch: w < 10 ? 10 : w};
             });
 
             XLSX.utils.book_append_sheet(workbook, worksheet, MONTH_NAMES[month - 1]);
@@ -367,6 +367,8 @@ async function loadFacilities() {
     const rawData = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getFacility}`);
     const response = await rawData.json();
 
+    // TODO здесь лютый костыль, надо убрать и нормально передавать ID
+
     const facilitySelector = buildSelector({
         ariaLabel: "Промысел",
         defaultText: "Промысел",
@@ -383,7 +385,7 @@ async function changeUItoGenerateSchedule() {
         const departmentSelector = buildSelector({
             ariaLabel: "Участок",
             defaultText: "Участок",
-            items: [{ id: "1", name: "УППН" }],
+            items: [{id: "1", name: "УППН"}],
             getLabel: item => item.name,
             getValue: item => item.id
         });
@@ -442,7 +444,7 @@ function attachSelectorListenersToRenderTable() {
 
 async function pollScheduleStatus(scheduleId) {
     polling: while (true) {
-        const rawData = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getScheduleStatus}/${scheduleId}`);
+        const rawData = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getScheduleStatus(scheduleId)}`);
         const response = await rawData.json();
 
         switch (response.status) {
@@ -460,7 +462,7 @@ async function checkGenerationStatus() {
     const lastScheduleId = localStorage.getItem(LAST_SCHEDULE_ID_KEY);
     if (!lastScheduleId) return;
 
-    const rawData = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getScheduleStatus}/${lastScheduleId}`);
+    const rawData = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getScheduleStatus(lastScheduleId)}`);
     const response = await rawData.json();
 
     if (response.status !== ScheduleStatus.PROCESSING) {
