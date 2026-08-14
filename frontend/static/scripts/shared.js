@@ -1,21 +1,22 @@
 export class Employee {
     constructor(data) {
-        this.activity = data.activity ?? ``;
-        this.can_replace_boss = data.can_replace_boss ?? ``;
-        this.can_work_night = data.can_work_night ?? ``;
-        this.department_name = data.department_name ?? ``;
-        this.facility_name = data.facility_name ?? ``;
         this.full_name = data.full_name ?? ``;
-        this.rank = data.rank ?? ``;
-        this.role_name = data.role_name ?? ``;
-        this.senior = data.senior ?? ``;
         this.tab_number = data.tab_number ?? ``;
-        this.tmc = data.tmc ?? ``;
+        this.gender = data.gender ?? ``;
+        this.role_name = data.role_name ?? ``;
+        this.facility_name = data.facility_name ?? ``;
+        this.department_name = data.department_name ?? ``;
         this.work_method = data.work_method ?? ``;
+        this.base_city = data.base_city ?? ``;
+        this.gathering_point = data.gathering_point ?? ``;
+        this.rank = data.rank ?? ``;
+        this.personnel_subdivision = data.personnel_subdivision ?? ``;
+        this.activity = data.activity ?? ``;
+        this.can_work_night = data.can_work_night ?? ``;
+        this.senior = data.senior ?? ``;
+        this.can_replace_boss = data.can_replace_boss ?? ``;
+        this.can_replace_senior = data.can_replace_senior ?? ``;
+        this.tmc = data.tmc ?? ``;
     }
 
-    formatFullName() {
-        let parts = this.full_name.split(' ');
-        return `${parts[0]} ${parts[1].slice(0,1)}.${parts[2].slice(0,1)}.`;
-    }
 }

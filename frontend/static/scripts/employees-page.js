@@ -44,21 +44,20 @@ const DOM = {
 const columns = [
     {key: 'full_name', label: 'ФИО'},
     {key: 'tab_number', label: 'ТАБ. №'},
-    {key: 'sex', label: 'ПОЛ'},
+    {key: 'gender', label: 'ПОЛ'},
     {key: 'role_name', label: 'ДОЛЖНОСТЬ'},
-    {key: 'rank', label: 'РАЗРЯД'},
     {key: 'facility_name', label: 'ПРОМЫСЕЛ'},
     {key: 'department_name', label: 'УЧАСТОК'},
+    {key: 'work_method', label: 'ВАХТОВЫЙ МЕТОД'},
+    {key: 'base_city', label: 'БАЗОВЫЙ ГОРОД'},
+    {key: 'gathering_point', label: 'ПУНКТ СБОРА'},
+    {key: 'rank', label: 'РАЗРЯД'},
+    {key: 'personnel_subdivision', label: 'ПОДРАЗДЕЛ ПЕРСОНАЛА'},
     {key: 'activity', label: 'КОМПЕТЕНЦИИ'},
     {key: 'can_work_night', label: 'НОЧЬ'},
     {key: 'senior', label: 'СТ. ОПЕРАТОР'},
     {key: 'can_replace_boss', label: 'ЗАМ. НАЧАЛЬНИКА СМЕНЫ'},
     {key: 'can_replace_senior', label: 'ЗАМ. СТ. ОПЕРАТОРА'},
-    {key: 'work_method', label: 'ВАХТОВЫЙ МЕТОД'},
-    {key: 'base_city', label: 'БАЗОВЫЙ ГОРОД'},
-    {key: 'collection_point', label: 'ПУНКТ СБОРА'},
-    {key: 'residence', label: 'МЕСТО ЖИТЕЛЬСТВА'},
-    {key: 'personnel_subsection', label: 'ПОДРАЗДЕЛ ПЕРСОНАЛА'},
     {key: 'actions_with_employee', label: 'ДЕЙСТВИЯ С СОТРУДНИКОМ'}
 ];
 
@@ -75,15 +74,19 @@ function renderTableHead() {
 async function getUsers() {
     try {
         const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getEmployees}`)
-        const employeesJson = await response.json();
 
         if (!response.ok) {
             throw new Error(`Ошибка сервера ${response.status}`);
         }
 
-        return employeesJson.map(employeeData => new Employee(employeeData)).sort((a, b) => a.full_name.localeCompare(b.full_name));
+        const employeesJson = await response.json();
+
+        return employeesJson
+            .map(employeeData => new Employee(employeeData))
+            .sort((a, b) => a.full_name.localeCompare(b.full_name));
     } catch (error) {
         console.log(error);
+        throw error;
     }
 }
 
@@ -98,7 +101,7 @@ function getTableRow(user) {
         td.classList.add('editable');
         if (i === 0) td.classList.add('sticky-col');
 
-        td.textContent = i === 0 ? user.formatFullName() : user[key];
+        td.textContent = i === 0 ? user.full_name : user[key];
 
         row.appendChild(td);
     }
@@ -462,6 +465,7 @@ export function init() {
     DOM.searchIcon.addEventListener('click', findEmployee);
 
     getUsers().then(users => {
+        console.log(users);
         renderTable(users);
 
         let backup = []
