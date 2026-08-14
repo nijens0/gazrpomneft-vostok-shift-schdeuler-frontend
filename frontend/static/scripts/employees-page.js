@@ -218,16 +218,10 @@ function importEmployeesTable(event) {
 
                 const employeeData = {
                     id: row[1] ? String(row[1]).trim() : "",
-                    roleId: row[2] ? String(row[2]).trim() : "",
                     role_id: row[2] ? String(row[2]).trim() : "",
-                    departmentId: row[4] ? String(row[4]).trim() : "",
                     department_id: row[4] ? String(row[4]).trim() : "",
-                    workMethod: row[11] ? String(row[11]).trim() : "",
                     work_method: row[11] ? String(row[11]).trim() : "",
 
-                    lastName: nameParts[0] || "",
-                    firstName: nameParts[1] || "",
-                    middleName: nameParts[2] || "",
                     last_name: nameParts[0] || "",
                     first_name: nameParts[1] || "",
                     middle_name: nameParts[2] || ""
