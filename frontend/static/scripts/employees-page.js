@@ -101,7 +101,7 @@ function getTableRow(user) {
         td.classList.add('editable');
         if (i === 0) td.classList.add('sticky-col');
 
-        td.textContent = i === 0 ? user.full_name : user[key];
+        td.textContent = user[key];
 
         row.appendChild(td);
     }
