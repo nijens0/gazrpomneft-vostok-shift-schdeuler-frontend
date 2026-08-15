@@ -1029,6 +1029,9 @@ td.sticky-col {
 }
 
 .selector {
+    max-width: 145px;
+    padding-right: 24px;
+    text-overflow: ellipsis;
     background-color: transparent;
     border: none;
     font-family: var(--font-family), serif;
