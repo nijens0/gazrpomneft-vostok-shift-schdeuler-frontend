@@ -111,6 +111,12 @@ const DOM = {
     },
     get tableHead() {
         return document.querySelector('.table thead');
+    },
+    get toolbar() {
+        return document.querySelector('.toolbar');
+    },
+    get buttonsContainer() {
+        return document.querySelector('.buttons');
     }
 };
 
@@ -340,7 +346,7 @@ async function setChooseScheduleSelectors() {
 function renderTableHead(month) {
     const tableHead = DOM.tableHead;
     tableHead.innerHTML = '';
-    
+
     const tr1 = document.createElement('tr');
     const tr2 = document.createElement('tr');
 
@@ -367,6 +373,35 @@ function renderTableHead(month) {
     });
 
     tableHead.append(tr1, tr2);
+}
+
+function setChooseScheduleButtons() {
+    const buttonsContainer = DOM.buttonsContainer;
+
+    buttonsContainer.innerHTML = `
+        <button class="toolbar-button import">
+            <img class="toolbar-icon" src="/static/icons/download.svg" alt="Иконка импорта"/>
+            Импорт из Excel
+        </button>
+        <button class="toolbar-button export">
+            <img class="toolbar-icon" src="/static/icons/export.svg" alt="Иконка экспорта"/>
+            Экспорт в Excel
+        </button>
+        <button class="add-button" disabled>
+            Сформировать график
+        </button>`;
+}
+
+function setGenerateScheduleButtons() {
+    const buttonsContainer = DOM.buttonsContainer;
+
+    buttonsContainer.innerHTML = `
+        <button class="toolbar-button export">
+            Назад
+        </button>
+        <button class="add-button" disabled>
+            Начать Генерацию
+        </button>`;
 }
 
 async function createAndLoadSchedule(departmentId, facilityId) {
@@ -429,6 +464,37 @@ async function changeUItoChooseSchedule() {
     } catch (error) {
         console.error(error);
         alert("Не удалось загрузить список графиков. Проверьте соединение с сервером.");
+    }
+}
+
+async function changeUItoGenerateSchedule() {
+    try {
+        const departmentSelector = buildSelector({
+            ariaLabel: "Участок",
+            defaultText: "Участок",
+            items: [{id: "1", name: "УППН"}],
+            getLabel: item => item.name,
+            getValue: item => item.id
+        });
+        DOM.allSelectors[0].replaceWith(departmentSelector);
+
+        await loadFacilities();
+
+        DOM.btnGenerate.innerHTML = `Начать генерацию`;
+        DOM.btnGenerate.disabled = true;
+
+        DOM.btnImport.classList.add('hidden');
+
+        const btnExport = DOM.btnExport;
+        btnExport.innerHTML = `Назад`;
+        btnExport.removeEventListener('click', handleExportClick);
+        btnExport.addEventListener('click', handleBackClick);
+
+        clearTable();
+        attachSelectorListenersToGenerate();
+    } catch (error) {
+        console.error(error);
+        alert("Не удалось загрузить список промыслов. Проверьте соединение с сервером.");
     }
 }
 
@@ -529,37 +595,6 @@ async function loadFacilities() {
     });
 
     DOM.allSelectors[1].replaceWith(facilitySelector);
-}
-
-async function changeUItoGenerateSchedule() {
-    try {
-        const departmentSelector = buildSelector({
-            ariaLabel: "Участок",
-            defaultText: "Участок",
-            items: [{id: "1", name: "УППН"}],
-            getLabel: item => item.name,
-            getValue: item => item.id
-        });
-        DOM.allSelectors[0].replaceWith(departmentSelector);
-
-        await loadFacilities();
-
-        DOM.btnGenerate.innerHTML = `Начать генерацию`;
-        DOM.btnGenerate.disabled = true;
-
-        DOM.btnImport.classList.add('hidden');
-
-        const btnExport = DOM.btnExport;
-        btnExport.innerHTML = `Назад`;
-        btnExport.removeEventListener('click', handleExportClick);
-        btnExport.addEventListener('click', handleBackClick);
-
-        clearTable();
-        attachSelectorListenersToGenerate();
-    } catch (error) {
-        console.error(error);
-        alert("Не удалось загрузить список промыслов. Проверьте соединение с сервером.");
-    }
 }
 
 function updateButtonState() {
