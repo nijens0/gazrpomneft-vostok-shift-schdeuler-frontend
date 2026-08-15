@@ -336,11 +336,22 @@ function editTableListeners(e, backup) {
         DOM.table.classList.remove('edits')
     } else if (target.classList.contains("delete-button")) {
         const tr = target.closest('tr');
-        tr.remove();
+        const td = tr.querySelector('[data-key="tab_number"]');
+        const tabNumber = td.textContent.trim();
 
-        const employeesStats = DOM.employeesStats;
-        const stats = employeesStats.textContent;
-        employeesStats.textContent = `${+stats - 1}`
+        fetch(`${API_BASE_URL}${API_ENDPOINTS.deleteEmployee(tabNumber)}`, {
+            method: "DELETE"
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error(`Ошибка сервера: ${response.status}`);
+            }
+            alert('Сотрудник успешно удалён');
+        }).catch(error => {
+            alert(`Не удалось обновить данные: ${error.message}`);
+        });
+
+        DOM.employeesStats.textContent = `${+DOM.employeesStats.textContent - 1}`
+        tr.remove();
     }
 
 
@@ -394,12 +405,10 @@ function initModal() {
         const rows = DOM.table.querySelectorAll('tbody tr');
         for (const tr of rows) {
             const td = tr.firstElementChild;
-            if (employee.formatFullName().trim() < td.textContent.trim()) {
+            if (employee.full_name.trim() < td.textContent.trim()) {
                 tr.before(getTableRow(employee));
 
-                const employeesStats = DOM.employeesStats;
-                const stats = employeesStats.textContent;
-                employeesStats.textContent = `${+stats + 1}`;
+                DOM.employeesStats.textContent = `${+DOM.employeesStats.textContent + 1}`;
 
                 modal.close();
 
