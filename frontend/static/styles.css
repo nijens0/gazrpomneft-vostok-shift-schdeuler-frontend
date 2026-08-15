@@ -909,7 +909,6 @@ body {
     -ms-overflow-style: none;
     border-radius: var(--border-radius);
     border: 1px solid var(--gray);
-    white-space: nowrap;
 }
 
 .table {
@@ -918,11 +917,6 @@ body {
     white-space: nowrap;
 
     &.employees {
-
-        td:nth-child(n + 5):nth-child(-n + 13) {
-            text-align: center;
-            vertical-align: middle;
-        }
 
         tbody tr:last-child td {
             border-bottom: none;
@@ -970,6 +964,7 @@ body {
     }
 
     th {
+        text-align: left;
         background-color: #F3F3FD;
         color: var(--blue-gray);
         font-weight: 600;
@@ -983,7 +978,6 @@ body {
 
     th, td {
         padding: 12px;
-        text-align: left;
         font-size: var(--fs-sm);
         border-right: 1px solid var(--gray);
         border-bottom: 1px solid var(--gray);
@@ -992,10 +986,25 @@ body {
 }
 
 .cell-center {
-    text-align: center !important;
+    text-align: center;
+}
+
+.cell-left {
+    text-align: left;
+}
+
+.cell-normal {
+    min-width: 200px;
+    white-space: normal;
+}
+
+.cell-wide {
+    min-width: 350px;
+    white-space: normal;
 }
 
 .sticky-col {
+    min-width: 250px;
     position: sticky;
     left: 0;
 }
