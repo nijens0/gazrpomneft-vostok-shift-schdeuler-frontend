@@ -74,7 +74,10 @@ const DOM = {
     get overlay() {
         return document.getElementById('loading-overlay');
     },
-    get selectors() {
+    get selectorsContainer() {
+        return document.querySelector('.selectors');
+    },
+    get allSelectors() {
         return document.querySelectorAll('.selector');
     },
     get btnImport() {
@@ -227,6 +230,95 @@ function renderTable(monthlyScheduleInfo, targetTbody = null) {
     }
 }
 
+async function setGenerateScheduleSelectors() {
+    const selectorsContainer = DOM.selectorsContainer;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getFacilities}`);
+
+        if (!response.ok) {
+            throw new Error(`Ошибка загрузки промыслов: ${response.status}`);
+        }
+
+        const json = await response.json();
+
+        const facilitiesSelector = document.createElement('select');
+        facilitiesSelector.classList.add('selector');
+        facilitiesSelector.ariaLabel = 'Промысел';
+        facilitiesSelector.required = true;
+
+        const defaultOption = document.createElement('option');
+        facilitiesSelector.appendChild(defaultOption);
+        defaultOption.value = '';
+        defaultOption.text = 'Промысел';
+        defaultOption.selected = true;
+        defaultOption.disabled = true;
+
+        json.forEach(facility => {
+            const option = document.createElement('option');
+            option.value = facility.facility_id;
+            option.text = facility.short_name || facility.facility_name;
+            facilitiesSelector.appendChild(option);
+        });
+
+
+        const departmentsSelector = document.createElement('select');
+        departmentsSelector.classList.add('selector');
+        departmentsSelector.ariaLabel = 'Участок';
+        departmentsSelector.required = true;
+        departmentsSelector.disabled = true;
+
+        const defaultDeptOption = document.createElement('option');
+        departmentsSelector.appendChild(defaultDeptOption);
+        defaultDeptOption.value = '';
+        defaultDeptOption.text = 'Участок';
+        defaultDeptOption.selected = true;
+        defaultDeptOption.disabled = true;
+
+        selectorsContainer.innerHTML = '';
+        selectorsContainer.append(facilitiesSelector, departmentsSelector);
+
+    } catch (error) {
+        console.error('Не удалось загрузить промыслы:', error);
+    }
+}
+
+async function setChooseScheduleSelectors() {
+    const selectorsContainer = DOM.selectorsContainer;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getSchedules}`);
+
+        if (!response.ok) {
+            throw new Error(`Ошибка получения расписаний ${response.status}`);
+        }
+
+        const json = await response.json();
+
+        const schedulesSelector = document.createElement('select');
+        schedulesSelector.classList.add('selector');
+        schedulesSelector.ariaLabel = 'Графики';
+        json.forEach(schedule => {
+            const option = document.createElement('option');
+            option.value = schedule.id;
+            option.text = schedule.name;
+        });
+
+        const monthSelector = document.createElement('select');
+        monthSelector.classList.add('selector');
+        monthSelector.ariaLabel = 'Месяц';
+        MONTHS.forEach((month, index) => {
+            const option = document.createElement('option');
+            option.value = String(index + 1);
+            option.text = month.name;
+        });
+
+        selectorsContainer.append(schedulesSelector, monthSelector);
+    } catch (error) {
+        console.error('Не удалось загрузить графики:', error);
+    }
+}
+
 async function createAndLoadSchedule(departmentId, facilityId) {
     showLoadingSpinner();
 
@@ -271,15 +363,15 @@ async function changeUItoChooseSchedule() {
         const monthSelector = buildSelector({
             ariaLabel: "Месяц",
             defaultText: "Месяц",
-            items: MONTH_NAMES.map((name, index) => ({name, id: index + 1})),
+            items: MONTHS.map((month, index) => ({name: month.name, id: index + 1})),
             getLabel: month => month.name,
             getValue: month => month.id
         });
         monthSelector.querySelector('option[value=""]').remove();
         monthSelector.value = "1";
 
-        DOM.selectors[0].replaceWith(scheduleSelector);
-        DOM.selectors[1].replaceWith(monthSelector);
+        DOM.allSelectors[0].replaceWith(scheduleSelector);
+        DOM.allSelectors[1].replaceWith(monthSelector);
 
         DOM.btnGenerate.disabled = false;
 
@@ -306,7 +398,7 @@ async function handleBackClick() {
 }
 
 async function handleExportClick() {
-    const scheduleId = DOM.selectors[0].value;
+    const scheduleId = DOM.allSelectors[0].value;
 
     if (!scheduleId) {
         alert("Пожалуйста, выберите график для экспорта.");
@@ -359,7 +451,7 @@ async function handleExportClick() {
                 return {wch: w < 10 ? 10 : w};
             });
 
-            XLSX.utils.book_append_sheet(workbook, worksheet, MONTH_NAMES[month - 1]);
+            XLSX.utils.book_append_sheet(workbook, worksheet, MONTHS[month - 1]);
         }
 
         const currentYear = new Date().getFullYear();
@@ -374,10 +466,9 @@ async function handleExportClick() {
 }
 
 async function loadFacilities() {
-    const rawData = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getFacility}`);
+    const rawData = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getFacilities}`);
     const response = await rawData.json();
-
-    // TODO здесь лютый костыль, надо убрать и нормально передавать ID
+    console.log(response);
 
     const facilitySelector = buildSelector({
         ariaLabel: "Промысел",
@@ -387,7 +478,7 @@ async function loadFacilities() {
         getValue: facility => facility.facility_id
     });
 
-    DOM.selectors[1].replaceWith(facilitySelector);
+    DOM.allSelectors[1].replaceWith(facilitySelector);
 }
 
 async function changeUItoGenerateSchedule() {
@@ -399,7 +490,7 @@ async function changeUItoGenerateSchedule() {
             getLabel: item => item.name,
             getValue: item => item.id
         });
-        DOM.selectors[0].replaceWith(departmentSelector);
+        DOM.allSelectors[0].replaceWith(departmentSelector);
 
         await loadFacilities();
 
@@ -422,19 +513,19 @@ async function changeUItoGenerateSchedule() {
 }
 
 function updateButtonState() {
-    const isValid = DOM.selectors[0].checkValidity() && DOM.selectors[1].checkValidity();
+    const isValid = DOM.allSelectors[0].checkValidity() && DOM.allSelectors[1].checkValidity();
     DOM.btnGenerate.disabled = !isValid;
 }
 
 function attachSelectorListenersToGenerate() {
-    DOM.selectors.forEach(selector => {
+    DOM.allSelectors.forEach(selector => {
         selector.addEventListener("change", updateButtonState);
     });
     updateButtonState();
 }
 
 async function updateTableData() {
-    const selectors = DOM.selectors;
+    const selectors = DOM.allSelectors;
     if (!selectors[0].checkValidity()) return;
 
     try {
@@ -446,7 +537,7 @@ async function updateTableData() {
 }
 
 function attachSelectorListenersToRenderTable() {
-    DOM.selectors.forEach(selector => {
+    DOM.allSelectors.forEach(selector => {
         selector.addEventListener("change", updateTableData);
     });
     updateTableData();
@@ -514,7 +605,7 @@ export async function init() {
 
     DOM.btnGenerate.addEventListener("click", async () => {
         if (DOM.btnGenerate.innerHTML.trim() === `Начать генерацию`) {
-            await generateButtonCase(DOM.selectors[1], DOM.selectors[0]);
+            await generateButtonCase(DOM.allSelectors[1], DOM.allSelectors[0]);
         } else if (DOM.btnGenerate.innerHTML.trim() === `Сформировать график`) {
             await changeUItoGenerateSchedule();
         }
