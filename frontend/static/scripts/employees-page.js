@@ -42,23 +42,23 @@ const DOM = {
 }
 
 const columns = [
-    {key: 'full_name', label: 'ФИО'},
-    {key: 'tab_number', label: 'ТАБ. №'},
-    {key: 'gender', label: 'ПОЛ'},
-    {key: 'role_name', label: 'ДОЛЖНОСТЬ'},
-    {key: 'facility_name', label: 'ПРОМЫСЕЛ'},
-    {key: 'department_name', label: 'УЧАСТОК'},
-    {key: 'work_method', label: 'ВАХТОВЫЙ МЕТОД'},
-    {key: 'base_city', label: 'БАЗОВЫЙ ГОРОД'},
-    {key: 'gathering_point', label: 'ПУНКТ СБОРА'},
-    {key: 'rank', label: 'РАЗРЯД'},
-    {key: 'personnel_subdivision', label: 'ПОДРАЗДЕЛ ПЕРСОНАЛА'},
-    {key: 'activity', label: 'КОМПЕТЕНЦИИ'},
-    {key: 'can_work_night', label: 'НОЧЬ'},
-    {key: 'senior', label: 'СТ. ОПЕРАТОР'},
-    {key: 'can_replace_boss', label: 'ЗАМ. НАЧАЛЬНИКА СМЕНЫ'},
-    {key: 'can_replace_senior', label: 'ЗАМ. СТ. ОПЕРАТОРА'},
-    {key: 'actions_with_employee', label: 'ДЕЙСТВИЯ С СОТРУДНИКОМ'}
+    {key: 'full_name', label: 'ФИО', align: 'left', type: 'normal'},
+    {key: 'tab_number', label: 'ТАБ. №', align: 'left'},
+    {key: 'gender', label: 'ПОЛ', align: 'center'},
+    {key: 'role_name', label: 'ДОЛЖНОСТЬ', align: 'left', type: 'wide'},
+    {key: 'facility_name', label: 'ПРОМЫСЕЛ', align: 'left', type: 'wide'},
+    {key: 'department_name', label: 'УЧАСТОК', align: 'left', type: 'wide'},
+    {key: 'work_method', label: 'ВАХТОВЫЙ МЕТОД', align: 'center'},
+    {key: 'base_city', label: 'БАЗОВЫЙ ГОРОД', align: 'center'},
+    {key: 'gathering_point', label: 'ПУНКТ СБОРА', align: 'left', type: 'normal'},
+    {key: 'rank', label: 'РАЗРЯД', align: 'center'},
+    {key: 'personnel_subdivision', label: 'ПОДРАЗДЕЛ ПЕРСОНАЛА', align: 'center'},
+    {key: 'activity', label: 'КОМПЕТЕНЦИИ', align: 'center'},
+    {key: 'can_work_night', label: 'НОЧЬ', align: 'center'},
+    {key: 'senior', label: 'СТ. ОПЕРАТОР', align: 'center'},
+    {key: 'can_replace_boss', label: 'ЗАМ. НАЧАЛЬНИКА СМЕНЫ', align: 'center'},
+    {key: 'can_replace_senior', label: 'ЗАМ. СТ. ОПЕРАТОРА', align: 'center'},
+    {key: 'actions_with_employee', label: 'ДЕЙСТВИЯ С СОТРУДНИКОМ'},
 ];
 
 function renderTableHead() {
@@ -100,6 +100,8 @@ function getTableRow(user) {
         td.dataset.key = key;
         td.classList.add('editable');
         if (i === 0) td.classList.add('sticky-col');
+        if (columns[i].align) td.classList.add(`cell-${columns[i].align}`);
+        if (columns[i].type) td.classList.add(`cell-${columns[i].type}`);
 
         td.textContent = user[key];
 
