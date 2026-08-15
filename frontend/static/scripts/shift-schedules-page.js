@@ -10,19 +10,46 @@ const ScheduleStatus = {
 };
 
 const MONTHS = [
-    { name: "Январь", days: 31 },
-    { name: "Февраль", days: 28 },
-    { name: "Март", days: 31 },
-    { name: "Апрель", days: 30 },
-    { name: "Май", days: 31 },
-    { name: "Июнь", days: 30 },
-    { name: "Июль", days: 31 },
-    { name: "Август", days: 31 },
-    { name: "Сентябрь", days: 30 },
-    { name: "Октябрь", days: 31 },
-    { name: "Ноябрь", days: 30 },
-    { name: "Декабрь", days: 31 }
+    {name: "Январь", days: 31},
+    {name: "Февраль", days: 28},
+    {name: "Март", days: 31},
+    {name: "Апрель", days: 30},
+    {name: "Май", days: 31},
+    {name: "Июнь", days: 30},
+    {name: "Июль", days: 31},
+    {name: "Август", days: 31},
+    {name: "Сентябрь", days: 30},
+    {name: "Октябрь", days: 31},
+    {name: "Ноябрь", days: 30},
+    {name: "Декабрь", days: 31}
 ];
+
+const shiftColors = {
+    'Я': 'var(--day-shift)', 'Яз': 'var(--day-shift)', 'Яп': 'var(--day-shift)', 'Яв': 'var(--day-shift)',
+    'Н': 'var(--night-shift)', 'Нз': 'var(--night-shift)', 'Нп': 'var(--night-shift)', 'Нв': 'var(--night-shift)',
+    'В': 'var(--rest-and-trips)', 'ЕО': 'var(--rest-and-trips)',
+    'Д': 'var(--on-the-road-or-trips)',
+    'От': 'var(--vacations)', 'До': 'var(--vacations)',
+    'У': 'var(--special)', 'К': 'var(--special)', 'МВ': 'var(--special)'
+};
+
+const FIRST_COLUMNS = [
+    {key: 'employee_name', label: 'ФИО', rowspan: 2},
+    {key: 'role', label: 'ДОЛЖНОСТЬ', rowspan: 2},
+    {key: 'tab_number', label: 'ТАБ. №', rowspan: 2},
+    {key: 'work_method', label: 'МЕТОД <br>ВАХТЫ', rowspan: 2},
+    {key: 'schedule', label: 'ГРАФИК ВЫХОДА НА РАБОТУ ПО ЧИСЛАМ МЕСЯЦА', colspan: 'month'},
+    {key: 'total', label: 'ИТОГО ОТРАБОТАНО ЗА МЕСЯЦ', colspan: 5}
+];
+
+const SECOND_COLUMNS = [
+    {key: 'total_hours', label: 'ЧАСОВ<br>ВСЕГО'},
+    {key: 'night_hours', label: 'ЧАСОВ<br>НОЧНЫХ'},
+    {key: 'work_days', label: 'ДНЕЙ'},
+    {key: 'travel_days', label: 'ДНЕЙ В<br>ПУТИ'},
+    {key: 'fake_days', label: 'МВ'}
+];
+
 
 class MonthlyScheduleInfo {
     constructor(data) {
@@ -58,10 +85,6 @@ class Employee {
         this.work_method = data.work_method;
     }
 
-    formatFullName() {
-        let parts = this.employee_name.split(' ');
-        return `${parts[0]} ${parts[1].slice(0, 1)}.${parts[2].slice(0, 1)}.`;
-    }
 }
 
 const DOM = {
@@ -85,17 +108,12 @@ const DOM = {
     },
     get btnExport() {
         return document.querySelector('.export');
+    },
+    get tableHead() {
+        return document.querySelector('.table thead');
     }
 };
 
-const shiftColors = {
-    'Я': 'var(--day-shift)', 'Яз': 'var(--day-shift)', 'Яп': 'var(--day-shift)', 'Яв': 'var(--day-shift)',
-    'Н': 'var(--night-shift)', 'Нз': 'var(--night-shift)', 'Нп': 'var(--night-shift)', 'Нв': 'var(--night-shift)',
-    'В': 'var(--rest-and-trips)', 'ЕО': 'var(--rest-and-trips)',
-    'Д': 'var(--on-the-road-or-trips)',
-    'От': 'var(--vacations)', 'До': 'var(--vacations)',
-    'У': 'var(--special)', 'К': 'var(--special)', 'МВ': 'var(--special)'
-};
 
 function buildSelector({ariaLabel, defaultText, items, getLabel, getValue}) {
     const select = document.createElement("select");
@@ -208,7 +226,7 @@ function renderTable(monthlyScheduleInfo, targetTbody = null) {
             }
 
             row1.innerHTML += `
-                    <td rowspan="3" class="sticky-col">${employee.formatFullName()}</td>
+                    <td rowspan="3" class="sticky-col">${employee.employee_name}</td>
                     <td rowspan="3">${roleName}</td>
                     <td rowspan="3">${employee.rank ?? ""}</td>
                     <td rowspan="3">${employee.tab_number}</td>
@@ -317,6 +335,38 @@ async function setChooseScheduleSelectors() {
     } catch (error) {
         console.error('Не удалось загрузить графики:', error);
     }
+}
+
+function renderTableHead(month) {
+    const tableHead = DOM.tableHead;
+    tableHead.innerHTML = '';
+    
+    const tr1 = document.createElement('tr');
+    const tr2 = document.createElement('tr');
+
+    FIRST_COLUMNS.forEach(column => {
+        const th = document.createElement('th');
+        if (column.rowspan) th.rowSpan = column.rowspan;
+        if (column.colspan) th.colSpan = column.colspan === 'month' ? month.days : column.colspan;
+
+        th.innerHTML = column.label;
+        tr1.append(th);
+    });
+
+    for (let day = 1; day <= month.days; day++) {
+        const th = document.createElement('th');
+
+        th.textContent = String(day);
+        tr2.append(th);
+    }
+    SECOND_COLUMNS.forEach(column => {
+        const th = document.createElement('th');
+
+        th.innerHTML = column.label;
+        tr2.append(th);
+    });
+
+    tableHead.append(tr1, tr2);
 }
 
 async function createAndLoadSchedule(departmentId, facilityId) {
