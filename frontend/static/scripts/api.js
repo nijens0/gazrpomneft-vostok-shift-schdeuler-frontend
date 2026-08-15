@@ -8,5 +8,5 @@ export const API_ENDPOINTS = {
     getSchedule: (id, month) => `/schedules/${id}?month=${month}`,
     getSchedules: "/schedules",
     getScheduleStatus: (id) => `/schedules/status/${id}`,
-    getFacility: "/facilities",
+    getFacilities: "/facilities",
 }
