@@ -199,11 +199,10 @@ async function getTableData(scheduleId, month) {
 }
 
 function renderTable(monthlyScheduleInfo) {
-    renderTableContainer()
+    const tableContainer = renderTableContainer()
     renderTableHead()
 
     const tbody = document.querySelector('.table tbody');
-    tbody.innerHTML = '';
 
     for (const [roleName, employees] of Object.entries(monthlyScheduleInfo.roles)) {
         employees.forEach(employee => {
@@ -588,7 +587,7 @@ function getSettingsCard() {
 
 
     const title = document.createElement('h3');
-    title.classList.add('generation-settings-container-title');
+    title.classList.add('generation-settings-title');
     title.textContent = 'Настройки генерации';
     title.insertAdjacentHTML('afterbegin', `
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#45556C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

@@ -1271,6 +1271,8 @@ td.sticky-col {
     background-color: white;
     font-family: var(--font-family), serif;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+    color: var(--blue-gray);
+    font-weight: 500;
 
     & input {
         width: 40px;
@@ -1307,17 +1309,21 @@ td.sticky-col {
     }
 }
 
-.generation-settings-container-title {
+.generation-settings-title {
     display: flex;
     column-gap: 12px;
     align-items: center;
-    font-size: var(--fs-xl);
-    color: var(--blue-gray);
+    font-size: var(--fs-lg);
+    font-weight: 700;
+}
+
+.generation-settings-container-title {
+    font-size: var(--fs-lg);
+    font-weight: inherit;
 }
 
 .generation-settings-container-content {
     display: flex;
-    font-weight: 500;
     flex-direction: column;
     row-gap: 8px;
     font-size: var(--fs-md);
@@ -1329,7 +1335,7 @@ td.sticky-col {
     column-gap: 8px;
 
     & :nth-child(2) {
-        margin-right: 6px;
+        margin-right: 16px;
     }
 }
 
