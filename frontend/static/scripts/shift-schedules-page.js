@@ -242,6 +242,8 @@ function renderTableContainer() {
 
     table.append(thead, tbody);
     tableContainer.append(table);
+
+    return tableContainer;
 }
 
 function renderEmployeeRows(employee, roleName) {
