@@ -332,6 +332,7 @@ async function setChooseScheduleSelectors() {
             const option = document.createElement('option');
             option.value = String(index + 1);
             option.text = month.name;
+            monthSelector.append(option);
         });
 
         selectorsContainer.innerHTML = '';
