@@ -9,4 +9,5 @@ export const API_ENDPOINTS = {
     getSchedules: "/schedules",
     getScheduleStatus: (id) => `/schedules/status/${id}`,
     getFacilities: "/facilities",
+    getDepartments: (facilityId) => `/facilities/${facilityId}/departments`
 }

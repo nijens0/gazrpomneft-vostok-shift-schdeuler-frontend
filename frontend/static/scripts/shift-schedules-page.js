@@ -88,9 +88,6 @@ class Employee {
 }
 
 const DOM = {
-    get btnGenerate() {
-        return document.querySelector(".add-button");
-    },
     get loader() {
         return document.getElementById('loader');
     },
@@ -103,12 +100,6 @@ const DOM = {
     get allSelectors() {
         return document.querySelectorAll('.selector');
     },
-    get btnImport() {
-        return document.querySelector('.import');
-    },
-    get btnExport() {
-        return document.querySelector('.export');
-    },
     get tableHead() {
         return document.querySelector('.table thead');
     },
@@ -117,29 +108,23 @@ const DOM = {
     },
     get buttonsContainer() {
         return document.querySelector('.buttons');
+    },
+    get btnImport() {
+        return document.querySelector('.import');
+    },
+    get btnExport() {
+        return document.querySelector('.export');
+    },
+    get btnSchedules() {
+        return document.querySelector('.schedules');
+    },
+    get btnGenerate() {
+        return document.querySelector('.generate');
+    },
+    get btnNewSchedule() {
+        return document.querySelector('.new-schedule');
     }
 };
-
-
-function buildSelector({ariaLabel, defaultText, items, getLabel, getValue}) {
-    const select = document.createElement("select");
-    select.classList.add("selector");
-    select.required = true;
-    select.ariaLabel = ariaLabel;
-
-    const defaultOption = document.createElement("option");
-    defaultOption.disabled = true;
-    defaultOption.value = "";
-    defaultOption.selected = true;
-    defaultOption.textContent = defaultText;
-    select.appendChild(defaultOption);
-
-    items.forEach(item => {
-        select.add(new Option(getLabel(item), getValue(item)));
-    });
-
-    return select;
-}
 
 function showLoadingSpinner() {
     DOM.btnGenerate.disabled = true;
@@ -149,7 +134,7 @@ function showLoadingSpinner() {
 
 function hideLoadingSpinner() {
     DOM.btnGenerate.disabled = false;
-    DOM.btnGenerate.innerHTML = 'Сформировать график';
+    DOM.btnGenerate.innerHTML = 'Новый график';
     DOM.loader.classList.add('hidden');
 }
 
@@ -285,6 +270,15 @@ async function setGenerateScheduleSelectors() {
             facilitiesSelector.appendChild(option);
         });
 
+        facilitiesSelector.addEventListener('change', async () => {
+            facilitiesSelector.title = facilitiesSelector.selectedOptions[0].text;
+
+            const facilityId = facilitiesSelector.value;
+            const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getDepartments(facilityId)}`);
+            const facilityDepartments = await response.json();
+
+            console.log(facilityDepartments);
+        });
 
         const departmentsSelector = document.createElement('select');
         departmentsSelector.classList.add('selector');
@@ -337,9 +331,12 @@ async function setChooseScheduleSelectors() {
             option.text = month.name;
         });
 
+        selectorsContainer.innerHTML = '';
         selectorsContainer.append(schedulesSelector, monthSelector);
+        attachSelectorListenersToRenderTable()
     } catch (error) {
         console.error('Не удалось загрузить графики:', error);
+        throw new Error(error);
     }
 }
 
@@ -387,24 +384,33 @@ function setChooseScheduleButtons() {
             <img class="toolbar-icon" src="/static/icons/export.svg" alt="Иконка экспорта"/>
             Экспорт в Excel
         </button>
-        <button class="add-button" disabled>
-            Сформировать график
+        <button class="add-button new-schedule">
+            Новый график
         </button>`;
+
+    DOM.btnGenerate.addEventListener('click', handleNewScheduleClick)
 }
 
-function setGenerateScheduleButtons() {
+async function setGenerateScheduleButtons() {
     const buttonsContainer = DOM.buttonsContainer;
 
     buttonsContainer.innerHTML = `
-        <button class="toolbar-button export">
-            Назад
+        <button class="toolbar-button schedules">
+            Просмотр графиков
         </button>
-        <button class="add-button" disabled>
+        <button class="add-button generate" disabled>
             Начать Генерацию
         </button>`;
+
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getSchedules}`);
+    const schedules = await response.json();
+
+    DOM.btnSchedules.disabled = schedules.length === 0;
+
+    DOM.btnSchedules.addEventListener('click', handleToSchedulesClick);
 }
 
-async function createAndLoadSchedule(departmentId, facilityId) {
+async function createAndLoadSchedule(departmentId) {
     showLoadingSpinner();
 
     try {
@@ -428,89 +434,36 @@ async function createAndLoadSchedule(departmentId, facilityId) {
     }
 }
 
-async function generateButtonCase(departmentSelector, facilitySelector) {
-    await createAndLoadSchedule(departmentSelector.value, facilitySelector.value);
+async function generateButtonCase(departmentSelector) {
+    await createAndLoadSchedule(departmentSelector.value);
 }
 
 async function changeUItoChooseSchedule() {
     try {
-        const rawDataSchedules = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getSchedules}`);
-        const schedules = await rawDataSchedules.json();
-
-        const scheduleSelector = buildSelector({
-            ariaLabel: "Графики",
-            defaultText: "Графики",
-            items: schedules,
-            getLabel: schedule => schedule.name,
-            getValue: schedule => schedule.id
-        });
-
-        const monthSelector = buildSelector({
-            ariaLabel: "Месяц",
-            defaultText: "Месяц",
-            items: MONTHS.map((month, index) => ({name: month.name, id: index + 1})),
-            getLabel: month => month.name,
-            getValue: month => month.id
-        });
-        monthSelector.querySelector('option[value=""]').remove();
-        monthSelector.value = "1";
-
-        DOM.allSelectors[0].replaceWith(scheduleSelector);
-        DOM.allSelectors[1].replaceWith(monthSelector);
-
-        DOM.btnGenerate.disabled = false;
-
-        attachSelectorListenersToRenderTable();
-    } catch (error) {
-        console.error(error);
-        alert("Не удалось загрузить список графиков. Проверьте соединение с сервером.");
+        await setChooseScheduleSelectors();
+        setChooseScheduleButtons()
+    }
+    catch(error) {
+        console.log(`Не удалось сменить режим: ${error}`);
     }
 }
 
 async function changeUItoGenerateSchedule() {
     try {
-        const departmentSelector = buildSelector({
-            ariaLabel: "Участок",
-            defaultText: "Участок",
-            items: [{id: "1", name: "УППН"}],
-            getLabel: item => item.name,
-            getValue: item => item.id
-        });
-        DOM.allSelectors[0].replaceWith(departmentSelector);
-
-        await loadFacilities();
-
-        DOM.btnGenerate.innerHTML = `Начать генерацию`;
-        DOM.btnGenerate.disabled = true;
-
-        DOM.btnImport.classList.add('hidden');
-
-        const btnExport = DOM.btnExport;
-        btnExport.innerHTML = `Назад`;
-        btnExport.removeEventListener('click', handleExportClick);
-        btnExport.addEventListener('click', handleBackClick);
-
-        clearTable();
-        attachSelectorListenersToGenerate();
-    } catch (error) {
-        console.error(error);
-        alert("Не удалось загрузить список промыслов. Проверьте соединение с сервером.");
+        await setGenerateScheduleSelectors()
+        setGenerateScheduleButtons()
+    }
+    catch(error) {
+        console.log(`Не удалось сменить режим: ${error}`);
     }
 }
 
-async function handleBackClick() {
-    const btnImport = DOM.btnImport;
-    btnImport.classList.remove('hidden');
-
-    const btnExport = DOM.btnExport;
-    btnExport.innerHTML = `
-            <img class="toolbar-icon" src="/static/icons/export.svg" alt="Иконка экспорта"/>
-            Экспорт в Excel`;
-    btnExport.removeEventListener('click', handleBackClick);
-    btnExport.addEventListener('click', handleExportClick);
-
-    DOM.btnGenerate.innerHTML = 'Сформировать график';
+async function handleToSchedulesClick() {
     await changeUItoChooseSchedule();
+}
+
+async function handleNewScheduleClick() {
+    await changeUItoGenerateSchedule();
 }
 
 async function handleExportClick() {
@@ -579,22 +532,6 @@ async function handleExportClick() {
         DOM.btnExport.innerHTML = originalBtnText;
         unblockUI();
     }
-}
-
-async function loadFacilities() {
-    const rawData = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getFacilities}`);
-    const response = await rawData.json();
-    console.log(response);
-
-    const facilitySelector = buildSelector({
-        ariaLabel: "Промысел",
-        defaultText: "Промысел",
-        items: response,
-        getLabel: facility => facility.facility_name,
-        getValue: facility => facility.facility_id
-    });
-
-    DOM.allSelectors[1].replaceWith(facilitySelector);
 }
 
 function updateButtonState() {
@@ -685,14 +622,4 @@ export async function init() {
     await initScheduleUI();
 
     await checkGenerationStatus();
-
-    DOM.btnExport.addEventListener('click', handleExportClick);
-
-    DOM.btnGenerate.addEventListener("click", async () => {
-        if (DOM.btnGenerate.innerHTML.trim() === `Начать генерацию`) {
-            await generateButtonCase(DOM.allSelectors[1], DOM.allSelectors[0]);
-        } else if (DOM.btnGenerate.innerHTML.trim() === `Сформировать график`) {
-            await changeUItoGenerateSchedule();
-        }
-    });
 }

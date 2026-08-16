@@ -804,6 +804,11 @@ body {
     &:hover {
         background-color: var(--light-light-blue);
     }
+
+    &:disabled {
+        background-color: inherit;
+        cursor: not-allowed;
+    }
 }
 
 .add-button {
@@ -1048,6 +1053,11 @@ td.sticky-col {
     option {
         color: black;
     }
+}
+
+.buttons {
+    display: flex;
+    column-gap: 16px;
 }
 
 .memo-container {
