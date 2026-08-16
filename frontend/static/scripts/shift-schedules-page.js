@@ -195,9 +195,18 @@ async function getTableData(scheduleId, month) {
     }
 }
 
-function renderTable(monthlyScheduleInfo, targetTbody = null) {
-    const tbody = targetTbody || document.querySelector('.table tbody');
-    tbody.innerHTML = '';
+function renderTable(monthlyScheduleInfo) {
+    const tableContainer = document.createElement('div');
+    tableContainer.className = 'table-container';
+
+    const table = document.createElement('table');
+    table.className = 'table schedules';
+
+    const thead = document.createElement('thead');
+    const tbody = document.createElement('tbody');
+
+    table.append(thead, tbody);
+    tableContainer.appendChild(table);
 
     for (const [roleName, employees] of Object.entries(monthlyScheduleInfo.roles)) {
         employees.forEach(employee => {
