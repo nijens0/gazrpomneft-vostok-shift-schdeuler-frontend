@@ -211,6 +211,8 @@ function renderTable(monthlyScheduleInfo) {
             tbody.append(...rows);
         });
     }
+
+    return tableContainer;
 }
 
 function buildShiftCells(employee) {
