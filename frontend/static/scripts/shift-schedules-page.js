@@ -251,6 +251,39 @@ function renderTable(monthlyScheduleInfo) {
     }
 }
 
+function renderTableHead(month) {
+    const tableHead = DOM.tableHead;
+    tableHead.innerHTML = '';
+
+    const tr1 = document.createElement('tr');
+    const tr2 = document.createElement('tr');
+
+    FIRST_COLUMNS.forEach(column => {
+        const th = document.createElement('th');
+        if (column.rowspan) th.rowSpan = column.rowspan;
+        if (column.colspan) th.colSpan = column.colspan === 'month' ? month.days : column.colspan;
+
+        th.innerHTML = column.label;
+        tr1.append(th);
+    });
+
+    for (let day = 1; day <= month.days; day++) {
+        const th = document.createElement('th');
+
+        th.textContent = String(day);
+        tr2.append(th);
+    }
+    SECOND_COLUMNS.forEach(column => {
+        const th = document.createElement('th');
+
+        th.innerHTML = column.label;
+        tr2.append(th);
+    });
+
+    tableHead.append(tr1, tr2);
+}
+
+
 async function setGenerateScheduleSelectors() {
     const selectorsContainer = DOM.selectorsContainer;
 
