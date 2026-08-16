@@ -126,6 +126,9 @@ const DOM = {
     },
     get btnNewSchedule() {
         return document.querySelector('.new-schedule');
+    },
+    get content() {
+        return document.querySelector('.content')
     }
 };
 
@@ -269,7 +272,6 @@ function renderEmployeeRows(employee, roleName) {
 
 function renderTableHead(month) {
     const tableHead = DOM.tableHead;
-    tableHead.innerHTML = '';
 
     const tr1 = document.createElement('tr');
     const tr2 = document.createElement('tr');
@@ -419,38 +421,6 @@ async function setChooseScheduleSelectors() {
     }
 }
 
-function renderTableHead(month) {
-    const tableHead = DOM.tableHead;
-    tableHead.innerHTML = '';
-
-    const tr1 = document.createElement('tr');
-    const tr2 = document.createElement('tr');
-
-    FIRST_COLUMNS.forEach(column => {
-        const th = document.createElement('th');
-        if (column.rowspan) th.rowSpan = column.rowspan;
-        if (column.colspan) th.colSpan = column.colspan === 'month' ? month.days : column.colspan;
-
-        th.innerHTML = column.label;
-        tr1.append(th);
-    });
-
-    for (let day = 1; day <= month.days; day++) {
-        const th = document.createElement('th');
-
-        th.textContent = String(day);
-        tr2.append(th);
-    }
-    SECOND_COLUMNS.forEach(column => {
-        const th = document.createElement('th');
-
-        th.innerHTML = column.label;
-        tr2.append(th);
-    });
-
-    tableHead.append(tr1, tr2);
-}
-
 function setChooseScheduleButtons() {
     const buttonsContainer = DOM.buttonsContainer;
 
@@ -500,6 +470,8 @@ async function setGenerateScheduleButtons() {
     }
 }
 
+
+// TODO надо будет передать, так как для генерации графика теперь требуется дохуя (много) данных
 async function createAndLoadSchedule(departmentId) {
     showLoadingSpinner();
 
@@ -606,6 +578,65 @@ function getMemoHTML() {
     </section>`
 }
 
+function getSettingsCard() {
+    const container = document.createElement('div');
+    container.classList.add('generation-settings-container');
+
+
+    const title = document.createElement('h3');
+    title.classList.add('generation-settings-container-title');
+    title.textContent = 'Настройки генерации';
+    title.insertAdjacentHTML('afterbegin', `
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#45556C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M14 17H5"></path>
+                    <path d="M19 7h-9"></path>
+                    <circle cx="17" cy="17" r="3"></circle>
+                    <circle cx="7" cy="7" r="3"></circle>
+                </svg>`);
+
+    const contentContainer = document.createElement('div');
+    contentContainer.classList.add('generation-settings-container-content');
+
+    const contentContainerTitle = document.createElement('h4');
+    contentContainerTitle.classList.add('generation-settings-container-title');
+    contentContainerTitle.text = 'Даты перевахтовок';
+
+
+    const inputsContainer = document.createElement('div');
+    inputsContainer.classList.add('generation-settings-container-inputs');
+
+    const firstDateInput = document.createElement('input');
+    const secondDateInput = document.createElement('input');
+    const checkBox = document.createElement('input');
+    firstDateInput.placeholder = '1';
+    firstDateInput.type = 'number';
+    firstDateInput.min = '0';
+    firstDateInput.max = '31';
+    firstDateInput.oninput = () => {
+        let value = firstDateInput.value
+        if (+value < 0) firstDateInput.value = '0'; if (+value > 31) firstDateInput.value = '31';
+        if (value.length > 2) firstDateInput.value = firstDateInput.value.slice(0, 2);
+    }
+    secondDateInput.placeholder = '31';
+    secondDateInput.type = 'number';
+    secondDateInput.min = '0';
+    secondDateInput.max = '31';
+    secondDateInput.oninput = () => {
+        let value = secondDateInput.value
+        if (+value < 0) secondDateInput.value = '0'; if (+value > 31) secondDateInput.value = '31';
+        if (value.length > 2) secondDateInput.value = secondDateInput.value.slice(0, 2);
+    }
+    checkBox.type = 'checkbox';
+    inputsContainer.append(firstDateInput, secondDateInput, checkBox, 'Автоматически назначать ИО (Исполняющих обязанности)');
+
+
+    contentContainer.append(contentContainerTitle, inputsContainer);
+
+    container.append(title, contentContainer);
+
+    return container;
+}
+
 async function changeUItoChooseSchedule() {
     try {
         await setChooseScheduleSelectors();
@@ -622,6 +653,9 @@ async function changeUItoGenerateSchedule() {
     try {
         await setGenerateScheduleSelectors()
         await setGenerateScheduleButtons()
+
+        const content =  DOM.content;
+        content.append(getSettingsCard());
     }
     catch(error) {
         console.log(`Не удалось сменить режим: ${error}`);
@@ -635,7 +669,6 @@ async function handleToSchedulesClick() {
 async function handleNewScheduleClick() {
     await changeUItoGenerateSchedule();
 }
-
 
 function updateButtonState() {
     const isValid = DOM.allSelectors[0].checkValidity() && DOM.allSelectors[1].checkValidity();
