@@ -259,28 +259,18 @@ async function setGenerateScheduleSelectors() {
         facilitiesSelector.ariaLabel = 'Промысел';
         facilitiesSelector.required = true;
 
-        const defaultOption = document.createElement('option');
-        facilitiesSelector.appendChild(defaultOption);
-        defaultOption.value = '';
-        defaultOption.text = 'Промысел';
-        defaultOption.selected = true;
-        defaultOption.disabled = true;
+        const defaultFacOption = document.createElement('option');
+        facilitiesSelector.appendChild(defaultFacOption);
+        defaultFacOption.value = '';
+        defaultFacOption.text = 'Промысел';
+        defaultFacOption.selected = true;
+        defaultFacOption.disabled = true;
 
         json.forEach(facility => {
             const option = document.createElement('option');
             option.value = facility.facility_id;
             option.text = facility.short_name || facility.facility_name;
             facilitiesSelector.appendChild(option);
-        });
-
-        facilitiesSelector.addEventListener('change', async () => {
-            facilitiesSelector.title = facilitiesSelector.selectedOptions[0].text;
-
-            const facilityId = facilitiesSelector.value;
-            const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getDepartments(facilityId)}`);
-            const facilityDepartments = await response.json();
-
-            console.log(facilityDepartments);
         });
 
         const departmentsSelector = document.createElement('select');
@@ -298,6 +288,33 @@ async function setGenerateScheduleSelectors() {
 
         selectorsContainer.innerHTML = '';
         selectorsContainer.append(facilitiesSelector, departmentsSelector);
+
+        facilitiesSelector.addEventListener('change', async () => {
+            facilitiesSelector.title = facilitiesSelector.selectedOptions[0].text;
+
+            const facilityId = facilitiesSelector.value;
+            const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getDepartments(facilityId)}`);
+            const facilityDepartments = await response.json();
+            console.log(facilityDepartments);
+
+            departmentsSelector.disabled = false;
+
+            if (facilityDepartments.length !== 0) {
+                departmentsSelector.options.length = 0;
+                departmentsSelector.append(defaultDeptOption);
+
+                facilityDepartments.forEach(facilityDepartment => {
+                    const label = facilityDepartment.short_name || facilityDepartment.department_name || 'Без названия';
+                    const id = facilityDepartment.department_id
+
+                    departmentsSelector.add(new Option(label, id))
+                });
+            }
+        });
+
+        departmentsSelector.addEventListener('change', () => {
+            departmentsSelector.title = departmentsSelector.selectedOptions[0].text;
+        })
 
     } catch (error) {
         console.error('Не удалось загрузить промыслы:', error);
