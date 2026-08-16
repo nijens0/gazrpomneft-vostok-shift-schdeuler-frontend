@@ -397,7 +397,8 @@ function setChooseScheduleButtons() {
 async function setGenerateScheduleButtons() {
     const buttonsContainer = DOM.buttonsContainer;
 
-    buttonsContainer.innerHTML = `
+    try {
+        buttonsContainer.innerHTML = `
         <button class="toolbar-button schedules">
             Просмотр графиков
         </button>
@@ -405,12 +406,22 @@ async function setGenerateScheduleButtons() {
             Начать Генерацию
         </button>`;
 
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getSchedules}`);
-    const schedules = await response.json();
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getSchedules}`);
 
-    DOM.btnSchedules.disabled = schedules.length === 0;
+        if (!response.ok) {
+            throw new Error(`Не удалось получить графики: ${response.status}`);
+        }
 
-    DOM.btnSchedules.addEventListener('click', handleToSchedulesClick);
+        const schedules = await response.json();
+
+        DOM.btnSchedules.disabled = schedules.length === 0;
+
+        DOM.btnSchedules.addEventListener('click', handleToSchedulesClick);
+    }
+    catch (error) {
+        console.error(error);
+        throw error;
+    }
 }
 
 async function createAndLoadSchedule(departmentId) {
@@ -534,7 +545,7 @@ async function changeUItoChooseSchedule() {
 async function changeUItoGenerateSchedule() {
     try {
         await setGenerateScheduleSelectors()
-        setGenerateScheduleButtons()
+        await setGenerateScheduleButtons()
     }
     catch(error) {
         console.log(`Не удалось сменить режим: ${error}`);
