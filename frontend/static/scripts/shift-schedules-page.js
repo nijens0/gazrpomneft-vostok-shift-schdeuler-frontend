@@ -196,6 +196,38 @@ async function getTableData(scheduleId, month) {
 }
 
 function renderTable(monthlyScheduleInfo) {
+    renderTableContainer()
+    renderTableHead()
+
+    const tbody = document.querySelector('.table tbody');
+    tbody.innerHTML = '';
+
+    for (const [roleName, employees] of Object.entries(monthlyScheduleInfo.roles)) {
+        employees.forEach(employee => {
+            const rows = renderEmployeeRows(employee, roleName);
+            tbody.append(...rows);
+        });
+    }
+}
+
+function buildShiftCells(employee) {
+    let symbols = '';
+    let dayHours = '';
+    let nightHours = '';
+
+    for (let i = 0; i <= 30; i++) {
+        const shiftVal = employee.row_1_shift[i] || '';
+        const bgColor = shiftColors[shiftVal] || 'transparent';
+
+        symbols += `<td style="background-color: ${bgColor}">${employee.row_1_shift[i] ?? ""}</td>`;
+        dayHours += `<td class="cell-center">${employee.row_2_day_hours[i] ?? ""}</td>`;
+        nightHours += `<td class="cell-center">${employee.row_3_night_hours[i] ?? ""}</td>`;
+    }
+
+    return {symbols, dayHours, nightHours};
+}
+
+function renderTableContainer() {
     const tableContainer = document.createElement('div');
     tableContainer.className = 'table-container';
 
@@ -206,49 +238,33 @@ function renderTable(monthlyScheduleInfo) {
     const tbody = document.createElement('tbody');
 
     table.append(thead, tbody);
-    tableContainer.appendChild(table);
+    tableContainer.append(table);
+}
 
-    for (const [roleName, employees] of Object.entries(monthlyScheduleInfo.roles)) {
-        employees.forEach(employee => {
-            const row1 = document.createElement('tr');
-            const row2 = document.createElement('tr');
-            const row3 = document.createElement('tr');
+function renderEmployeeRows(employee, roleName) {
+    const row1 = document.createElement('tr');
+    const row2 = document.createElement('tr');
+    const row3 = document.createElement('tr');
 
-            let symbols = '';
-            let dayHours = '';
-            let nightHours = '';
+    const {symbols, dayHours, nightHours} = buildShiftCells(employee);
 
+    row1.innerHTML = `
+        <td rowspan="3" class="sticky-col">${employee.employee_name}</td>
+        <td rowspan="3">${roleName}</td>
+        <td rowspan="3">${employee.rank ?? ""}</td>
+        <td rowspan="3">${employee.tab_number}</td>
+        <td rowspan="3">${employee.work_method}</td>
+        ${symbols}
+        <td rowspan="3">${employee.total_hours}</td>
+        <td rowspan="3">${employee.night_hours}</td>
+        <td rowspan="3">${employee.work_days}</td>
+        <td rowspan="3">${employee.travel_days}</td>
+        <td rowspan="3">${employee.fake_days}</td>
+    `;
+    row2.innerHTML = dayHours;
+    row3.innerHTML = nightHours;
 
-            for (let i = 0; i <= 30; i++) {
-                const shiftVal = employee.row_1_shift[i] || '';
-                const bgColor = shiftColors[shiftVal] || 'transparent';
-
-                symbols += `<td style="background-color: ${bgColor}">${employee.row_1_shift[i] ?? ""}</td>`;
-                dayHours += `<td class="cell-center">${employee.row_2_day_hours[i] ?? ""}</td>`;
-                nightHours += `<td class="cell-center">${employee.row_3_night_hours[i] ?? ""}</td>`;
-            }
-
-            row1.innerHTML += `
-                    <td rowspan="3" class="sticky-col">${employee.employee_name}</td>
-                    <td rowspan="3">${roleName}</td>
-                    <td rowspan="3">${employee.rank ?? ""}</td>
-                    <td rowspan="3">${employee.tab_number}</td>
-                    <td rowspan="3">${employee.work_method}</td>
-                    ${symbols}
-                    <td rowspan="3">${employee.total_hours}</td>
-                    <td rowspan="3">${employee.night_hours}</td>
-                    <td rowspan="3">${employee.work_days}</td>
-                    <td rowspan="3">${employee.travel_days}</td>
-                    <td rowspan="3">${employee.fake_days}</td>
-                `;
-            row2.innerHTML = dayHours;
-            row3.innerHTML = nightHours;
-
-            tbody.appendChild(row1);
-            tbody.appendChild(row2);
-            tbody.appendChild(row3);
-        });
-    }
+    return [row1, row2, row3];
 }
 
 function renderTableHead(month) {
