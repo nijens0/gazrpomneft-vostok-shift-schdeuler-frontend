@@ -599,7 +599,7 @@ function getSettingsCard() {
 
     const contentContainerTitle = document.createElement('h4');
     contentContainerTitle.classList.add('generation-settings-container-title');
-    contentContainerTitle.text = 'Даты перевахтовок';
+    contentContainerTitle.textContent = 'Даты перевахтовок';
 
 
     const inputsContainer = document.createElement('div');
