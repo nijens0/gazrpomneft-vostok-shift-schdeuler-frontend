@@ -1393,6 +1393,10 @@ td.sticky-col {
     & svg {
         background-color: inherit;
     }
+
+    &:hover {
+        background-color: var(--light-light-blue);
+    }
 }
 
 
