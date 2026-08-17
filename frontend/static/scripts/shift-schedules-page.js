@@ -640,6 +640,30 @@ function getSettingsCard() {
     return container;
 }
 
+function getManagersCard() {
+    const container = document.createElement('div');
+    container.classList.add('manager-settings-container');
+
+    const title = document.createElement('h3');
+    title.classList.add('manager-settings-title');
+    title.textContent = 'РСС (Общие роли по участку)'; // Возможно понадобится изменения текста
+    title.insertAdjacentHTML('afterbegin', `
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                    <path d="M16 3.128a4 4 0 0 1 0 7.744"></path>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                </svg>`);
+    container.append(title);
+
+    const button = document.createElement('button');
+    button.classList.add()
+
+    container.append(getAddRoleButton('Добавить общую роль'));
+
+    return container;
+}
+
 function getAddRoleButton(text) {
     const svg =`
                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#151D30" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
