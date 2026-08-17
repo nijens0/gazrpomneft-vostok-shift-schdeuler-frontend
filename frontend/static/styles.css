@@ -1379,7 +1379,7 @@ td.sticky-col {
     font-weight: 700;
     color: white;
     background-color: var(--blue-gray);
-    margin: -24px;
+    margin: -24px -24px 0 -24px;
     padding: 24px;
 }
 
