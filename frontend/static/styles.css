@@ -1335,11 +1335,69 @@ td.sticky-col {
     column-gap: 8px;
 
     & :nth-child(2) {
-        margin-right: 16px;
+        margin-right: 135px;
     }
 }
 
 .content {
     display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    row-gap: 32px;
+}
+
+.manager-settings-container {
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    width: fit-content;
+    row-gap: 24px;
+    border: var(--border);
+    border-radius: var(--border-radius);
+    padding: 24px;
+    font-family: var(--font-family), serif;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+    color: var(--blue-gray);
+    font-weight: 500;
+    overflow: hidden;
+
+    & svg {
+        width: 32px;
+        height: 32px;
+        padding: 4px;
+        border-radius: var(--border-radius);
+        background-color: var(--dark-gray);
+    }
+}
+
+.manager-settings-title {
+    display: flex;
+    column-gap: 12px;
+    align-items: center;
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    color: white;
+    background-color: var(--blue-gray);
+    margin: -24px;
+    padding: 24px;
+}
+
+.add-role-button {
+    background-color: white;
+    border: 1px dashed var(--light-gray);
+    border-radius: var(--border-radius);
+    width: 100%;
+    font-size: var(--fs-md);
+
+    & svg {
+        background-color: inherit;
+    }
+}
+
+
+.add-role-button-text {
+    display: flex;
+    align-items: center;
     justify-content: center;
 }
