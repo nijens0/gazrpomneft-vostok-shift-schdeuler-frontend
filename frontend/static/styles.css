@@ -1389,6 +1389,7 @@ td.sticky-col {
     border-radius: var(--border-radius);
     width: 100%;
     font-size: var(--fs-md);
+    transition-duration: var(--transition-duration);
 
     & svg {
         background-color: inherit;
