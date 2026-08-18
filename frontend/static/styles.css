@@ -1347,6 +1347,37 @@ td.sticky-col {
     row-gap: 32px;
 }
 
+.settings-input {
+
+    width: 46px;
+    height: 34px;
+    padding: 8px;
+    border: var(--border);
+    border-radius: var(--border-radius);
+
+    &[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* Скрываем стрелочки для Chrome, Safari, Edge, Opera */
+
+    &[type="number"]::-webkit-outer-spin-button,
+    &[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    /* Скрываем стрелочки для Firefox */
+
+    &[type="number"] {
+        -moz-appearance: textfield;
+        appearance: textfield; /* Современная стандартная запись */
+    }
+
+    
+}
+
 .manager-settings-container {
     display: flex;
     flex-direction: column;
