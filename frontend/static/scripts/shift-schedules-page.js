@@ -611,6 +611,7 @@ function getSettingsCard() {
     const firstDateInput = document.createElement('input');
     const secondDateInput = document.createElement('input');
     const checkBox = document.createElement('input');
+    firstDateInput.classList.add('settings-input');
     firstDateInput.placeholder = '1';
     firstDateInput.type = 'number';
     firstDateInput.min = '0';
@@ -620,6 +621,7 @@ function getSettingsCard() {
         if (+value < 0) firstDateInput.value = '0'; if (+value > 31) firstDateInput.value = '31';
         if (value.length > 2) firstDateInput.value = firstDateInput.value.slice(0, 2);
     }
+    secondDateInput.classList.add('settings-input');
     secondDateInput.placeholder = '31';
     secondDateInput.type = 'number';
     secondDateInput.min = '0';
@@ -629,6 +631,7 @@ function getSettingsCard() {
         if (+value < 0) secondDateInput.value = '0'; if (+value > 31) secondDateInput.value = '31';
         if (value.length > 2) secondDateInput.value = secondDateInput.value.slice(0, 2);
     }
+    checkBox.classList.add('settings-input');
     checkBox.type = 'checkbox';
     inputsContainer.append(firstDateInput, secondDateInput, checkBox, 'Автоматически назначать ИО (Исполняющих обязанности)');
 
@@ -656,10 +659,8 @@ function getManagersCard() {
                 </svg>`);
     container.append(title);
 
-    const button = document.createElement('button');
-    button.classList.add()
 
-    container.append(getAddRoleButton('Добавить общую роль'));
+    container.append(getEmployeesCard('Начальник участка'), getAddRoleButton('Добавить общую роль'));
 
     return container;
 }
@@ -683,6 +684,165 @@ function getAddRoleButton(text) {
     return button;
 }
 
+function createTitleIcon() {
+    return `
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#DBEAFE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 17H5"></path>
+            <path d="M19 7h-9"></path>
+            <circle cx="17" cy="17" r="3"></circle>
+            <circle cx="7" cy="7" r="3"></circle>
+        </svg>`;
+}
+
+function createRoleInput(role) {
+    const roleInput = document.createElement('input');
+    roleInput.classList.add('employees-settings-card-role-input');
+    roleInput.placeholder = 'Название роли...';
+    roleInput.value = role ?? '';
+    return roleInput;
+}
+
+function createGradeSelector() {
+    const select = document.createElement('select');
+    select.classList.add('employees-settings-card-selector');
+    select.add(new Option('Без разряда', ''));
+    select.add(new Option('Руководитель', ''));
+    for (let i = 1; i <= 8; i++) {
+        select.add(new Option(`${i} разряд`, String(i)));
+    }
+    return select;
+}
+
+function createDeleteRoleButton() {
+    const deleteButton = document.createElement('button');
+    deleteButton.classList.add('delete-role-button');
+    deleteButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                   <path d="M10 11v6"></path>
+                                   <path d="M14 11v6"></path>
+                                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                                   <path d="M3 6h18"></path>
+                                   <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                              </svg>`;
+    return deleteButton;
+}
+
+function createDemandInput(labelText) {
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('demand-input-container');
+
+    const label = document.createElement('label');
+    label.textContent = labelText;
+
+    const input = document.createElement('input');
+    input.classList.add('settings-input');
+    input.type = 'number';
+    input.min = '0';
+    input.value = '0';
+    input.oninput = () => {
+        let value = input.value;
+        if (+value < 0) input.value = '0';
+        if (value.length > 2) input.value = input.value.slice(0, 2);
+    };
+
+    wrapper.append(label, input);
+    return wrapper;
+}
+
+function createDemandContainer() {
+    const demandContainer = document.createElement('div');
+    demandContainer.classList.add('demand-container');
+
+    const label = document.createElement('span');
+    label.classList.add('demand-label');
+    label.textContent = 'Спрос:';
+
+    const dayWrapper = createDemandInput('Д');
+
+    const divider = document.createElement('span');
+    divider.classList.add('demand-divider');
+
+    const nightWrapper = createDemandInput('Н');
+
+    demandContainer.append(label, dayWrapper, divider, nightWrapper);
+    return demandContainer;
+}
+
+function createTitleContainer(role) {
+    const titleContainer = document.createElement('div');
+    titleContainer.classList.add('employees-settings-card-title');
+    titleContainer.insertAdjacentHTML('afterbegin', createTitleIcon());
+
+    const roleInput = createRoleInput(role);
+    const select = createGradeSelector();
+    const deleteButton = createDeleteRoleButton();
+    const demandContainer = createDemandContainer();
+
+    titleContainer.append(roleInput, select, deleteButton, demandContainer);
+    return titleContainer;
+}
+
+function createTableHead() {
+    const thead = document.createElement('thead');
+    const headRow = document.createElement('tr');
+
+    const headers = ['ФИО Сотрудника', 'Таб. №', 'На вахте с 1 янв.'];
+    headers.forEach(text => {
+        const th = document.createElement('th');
+        th.textContent = text;
+        headRow.append(th);
+    });
+
+    thead.append(headRow);
+    return thead;
+}
+
+function createTableFoot() {
+    const tfoot = document.createElement('tfoot');
+    const addEmployeeRow = document.createElement('tr');
+    const addEmployeeCell = document.createElement('td');
+    addEmployeeCell.colSpan = 3;
+
+    const addEmployee = document.createElement('div');
+    addEmployee.classList.add('settings-add-employee');
+    addEmployee.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 21a8 8 0 0 1 13.292-6"></path>
+            <circle cx="10" cy="8" r="5"></circle>
+            <path d="M19 16v6"></path>
+            <path d="M22 19h-6"></path>
+        </svg>
+        <span>Добавить сотрудника</span>
+    `;
+
+    addEmployeeCell.append(addEmployee);
+    addEmployeeRow.append(addEmployeeCell);
+    tfoot.append(addEmployeeRow);
+    return tfoot;
+}
+
+function createTableContainer() {
+    const tableContainer = document.createElement('div');
+    tableContainer.classList.add('settings-table-container');
+
+    const table = document.createElement('table');
+    table.classList.add('table', 'settings');
+
+    const tbody = document.createElement('tbody');
+    table.append(createTableHead(), tbody, createTableFoot());
+
+    tableContainer.append(table);
+    return tableContainer;
+}
+
+function getEmployeesCard(role) {
+    const container = document.createElement('div');
+    container.classList.add('employees-settings-card');
+
+    container.append(createTitleContainer(role), createTableContainer());
+
+    return container;
+}
+
 async function changeUItoChooseSchedule() {
     try {
         await setChooseScheduleSelectors();
@@ -701,7 +861,7 @@ async function changeUItoGenerateSchedule() {
         await setGenerateScheduleButtons()
 
         const content =  DOM.content;
-        content.append(getSettingsCard());
+        content.append(getSettingsCard(), getManagersCard());
     }
     catch(error) {
         console.log(`Не удалось сменить режим: ${error}`);
