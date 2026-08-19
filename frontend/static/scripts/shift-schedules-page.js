@@ -466,8 +466,7 @@ async function setGenerateScheduleButtons() {
         DOM.btnSchedules.disabled = schedules.length === 0;
 
         DOM.btnSchedules.addEventListener('click', handleToSchedulesClick);
-    }
-    catch (error) {
+    } catch (error) {
         console.error(error);
         throw error;
     }
@@ -618,7 +617,8 @@ function getSettingsCard() {
     firstDateInput.max = '31';
     firstDateInput.oninput = () => {
         let value = firstDateInput.value
-        if (+value < 0) firstDateInput.value = '0'; if (+value > 31) firstDateInput.value = '31';
+        if (+value < 0) firstDateInput.value = '0';
+        if (+value > 31) firstDateInput.value = '31';
         if (value.length > 2) firstDateInput.value = firstDateInput.value.slice(0, 2);
     }
     secondDateInput.classList.add('settings-input');
@@ -628,7 +628,8 @@ function getSettingsCard() {
     secondDateInput.max = '31';
     secondDateInput.oninput = () => {
         let value = secondDateInput.value
-        if (+value < 0) secondDateInput.value = '0'; if (+value > 31) secondDateInput.value = '31';
+        if (+value < 0) secondDateInput.value = '0';
+        if (+value > 31) secondDateInput.value = '31';
         if (value.length > 2) secondDateInput.value = secondDateInput.value.slice(0, 2);
     }
     checkBox.classList.add('settings-input');
@@ -659,14 +660,24 @@ function getManagersCard() {
                 </svg>`);
     container.append(title);
 
+    container.addEventListener('click', (e) => {
+        const target = e.target;
+        const button = target.closest('button');
 
+        if (!button) return;
+
+        if (button.classList.contains('add-role-button')) {
+            button.before(getEmployeesCard(''));
+        }
+
+    });
     container.append(getEmployeesCard('Начальник участка'), getAddRoleButton('Добавить общую роль'));
 
     return container;
 }
 
 function getAddRoleButton(text) {
-    const svg =`
+    const svg = `
                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#151D30" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M5 12h14"></path>
                     <path d="M12 5v14"></path>
@@ -834,11 +845,82 @@ function createTableContainer() {
     return tableContainer;
 }
 
+function addEmployeeCardRow() {
+    const tr = document.createElement('tr');
+    const tdFullName = document.createElement('td');
+    const tdTabNumber = document.createElement('td');
+    const tdCheckBox = document.createElement('td');
+
+    const inputFullName = document.createElement('input');
+    const spanTabNumber = document.createElement('span');
+    const checkBoxWrapper = document.createElement('div');
+    const checkBox = document.createElement('input');
+    const deleteButton = document.createElement('button');
+
+    inputFullName.classList.add('input-fullname');
+    inputFullName.placeholder = 'Введите ФИО';
+
+    spanTabNumber.textContent = '—';
+
+    checkBoxWrapper.classList.add('check-box-wrapper')
+
+    checkBox.type = 'checkbox';
+    checkBox.classList.add('add-employee-row-checkbox');
+    tdCheckBox.classList.add('cell-center');
+
+    deleteButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                   <path d="M10 11v6"></path>
+                                   <path d="M14 11v6"></path>
+                                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                                   <path d="M3 6h18"></path>
+                                   <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                              </svg>`;
+    deleteButton.classList.add('delete-employee-row-button')
+
+    checkBoxWrapper.append(checkBox, deleteButton);
+    tdFullName.append(inputFullName);
+    tdTabNumber.append(spanTabNumber);
+    tdCheckBox.append(checkBoxWrapper);
+
+    tr.append(tdFullName, tdTabNumber, tdCheckBox);
+
+    return tr;
+}
+
 function getEmployeesCard(role) {
     const container = document.createElement('div');
     container.classList.add('employees-settings-card');
 
     container.append(createTitleContainer(role), createTableContainer());
+
+
+    container.addEventListener('click', (e) => {
+        const target = e.target;
+
+        if (target.tagName === 'SPAN') {
+            const tbody = target.closest('table').querySelector('tbody');
+            tbody.append(addEmployeeCardRow());
+        }
+
+    });
+
+    container.addEventListener('click', (e) => {
+       const target = e.target;
+       const button = target.closest('button')
+
+        if (!button) return;
+
+        if (button.classList.contains('delete-employee-row-button')) {
+            const tr = button.closest('tr');
+            tr.remove();
+        }
+
+        if (button.classList.contains('delete-role-button')) {
+            const roleCard = target.closest('.employees-settings-card');
+            roleCard.remove();
+        }
+
+    });
 
     return container;
 }
@@ -849,8 +931,7 @@ async function changeUItoChooseSchedule() {
         setChooseScheduleButtons();
 
         DOM.tableContainer.insertAdjacentHTML('afterend', getMemoHTML());
-    }
-    catch(error) {
+    } catch (error) {
         console.log(`Не удалось сменить режим: ${error}`);
     }
 }
@@ -860,10 +941,9 @@ async function changeUItoGenerateSchedule() {
         await setGenerateScheduleSelectors()
         await setGenerateScheduleButtons()
 
-        const content =  DOM.content;
+        const content = DOM.content;
         content.append(getSettingsCard(), getManagersCard());
-    }
-    catch(error) {
+    } catch (error) {
         console.log(`Не удалось сменить режим: ${error}`);
     }
 }

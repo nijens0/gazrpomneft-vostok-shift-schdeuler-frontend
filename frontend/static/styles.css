@@ -986,7 +986,11 @@ body {
             border-bottom-right-radius: var(--border-radius);
         }
 
-        & svg {
+        & tr td:last-child {
+            border-right: none;
+        }
+
+        & tfoot svg {
             width: 24px;
             height: 24px;
             background-color: white;
@@ -1565,6 +1569,7 @@ td.sticky-col {
 
 .settings-add-employee {
     display: flex;
+    width: fit-content;
     align-items: center;
     column-gap: 12px;
     font-size: var(--fs-sm);
@@ -1574,5 +1579,39 @@ td.sticky-col {
     &:hover {
         color: var(--blue);
         cursor: pointer;
+    }
+}
+
+.input-fullname {
+    color: var(--light-gray);
+    border: none;
+    font-weight: 600;
+}
+
+.check-box-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.add-employee-row-checkbox {
+    flex-grow: 1;
+    margin-left: 36px;
+}
+
+.delete-employee-row-button {
+    background-color: white;
+    border: none;
+    transition-duration: var(--transition-duration);
+
+    & svg {
+        width: 24px;
+        height: 24px;
+        background-color: white;
+        color: var(--dark-blue);
+        transition-duration: var(--transition-duration);
+
+        &:hover {
+            color: var(--red);
+        }
     }
 }
