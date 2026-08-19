@@ -705,6 +705,11 @@ function getAddGroupButton() {
     button.innerHTML = svg;
     button.append('Добавить новую группу');
 
+    button.addEventListener('click', (e) => {
+        const target = e.target;
+
+       target.before(getGroupCard());   
+    });
 
     return button;
 }
