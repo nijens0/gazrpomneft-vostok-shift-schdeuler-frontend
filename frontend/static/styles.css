@@ -384,7 +384,7 @@ svg * {
 
     --font-family: "Inter 18pt", sans-serif;
 
-    --border-radius: 8px;
+    --border-radius: 10px;
     --border: 1px solid #C3C6D6;
 
     --transition-duration: 0.2s;
@@ -1432,7 +1432,7 @@ td.sticky-col {
     }
 
     &:hover {
-        background-color: var(--light-light-blue);
+        background-color: whitesmoke;
     }
 }
 
@@ -1562,9 +1562,10 @@ td.sticky-col {
 }
 
 .generation-settings-container,
-.manager-settings-container {
+.manager-settings-container,
+.add-group-button {
     width: 100%;
-    max-width: 900px; /* подбери под макет */
+    max-width: 900px;
 }
 
 .settings-add-employee {
@@ -1613,5 +1614,26 @@ td.sticky-col {
         &:hover {
             color: var(--red);
         }
+    }
+}
+
+.add-group-button {
+    display: flex;
+    width: 100%;
+    background-color: white;
+    align-items: center;
+    column-gap: 16px;
+    justify-content: center;
+    color: var(--light-blue);
+    border: 1px dashed var(--gray);
+    font-family: var(--font-family), serif;
+    font-size: var(--fs-lg);
+    font-weight: 500;
+    border-radius: var(--border-radius);
+    padding-block: 18px;
+    transition-duration: var(--transition-duration);
+
+    &:hover {
+        background-color: whitesmoke;
     }
 }
