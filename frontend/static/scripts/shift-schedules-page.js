@@ -660,17 +660,6 @@ function getManagersCard() {
                 </svg>`);
     container.append(title);
 
-    container.addEventListener('click', (e) => {
-        const target = e.target;
-        const button = target.closest('button');
-
-        if (!button) return;
-
-        if (button.classList.contains('add-role-button')) {
-            button.before(getEmployeesCard(''));
-        }
-
-    });
     container.append(getEmployeesCard('Начальник участка'), getAddRoleButton('Добавить общую роль'));
 
     return container;
