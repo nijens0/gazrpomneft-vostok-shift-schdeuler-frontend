@@ -991,10 +991,13 @@ body {
         }
 
         & tfoot svg {
-            width: 24px;
-            height: 24px;
             background-color: white;
             color: var(--light-blue);
+        }
+
+        & svg {
+            width: 24px;
+            height: 24px;
         }
 
     }
