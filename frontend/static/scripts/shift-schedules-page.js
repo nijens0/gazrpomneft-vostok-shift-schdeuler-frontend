@@ -769,6 +769,7 @@ function createRoleInput(role) {
     roleInput.classList.add('employees-settings-card-role-input');
     roleInput.placeholder = 'Название роли...';
     roleInput.value = role ?? '';
+    roleInput.title = role ?? '';
     return roleInput;
 }
 
