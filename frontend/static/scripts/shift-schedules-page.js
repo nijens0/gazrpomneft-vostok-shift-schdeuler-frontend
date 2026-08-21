@@ -726,7 +726,11 @@ function getAddRoleButton(text) {
     button.addEventListener('click', () => {
         const parent = button.parentNode;
         const employeesSettingsCard = parent.querySelector('.employees-settings-card');
-        employeesSettingsCard.after(getEmployeesCard());
+        if (employeesSettingsCard) {
+            employeesSettingsCard.after(getEmployeesCard());
+        } else {
+            Array.from(parent.children).at(-1).before(getEmployeesCard());
+        }
     });
 
     return button;
