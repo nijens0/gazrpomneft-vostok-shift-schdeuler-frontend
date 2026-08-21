@@ -1383,6 +1383,9 @@ td.sticky-col {
         appearance: textfield; /* Современная стандартная запись */
     }
 
+    &.schedule-name {
+        width: 300px;
+    }
 
 }
 

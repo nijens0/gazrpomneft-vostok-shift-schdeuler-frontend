@@ -2,6 +2,8 @@ import {API_BASE_URL, API_ENDPOINTS} from "./api.js";
 /* global XLSX */
 
 const LAST_SCHEDULE_ID_KEY = 'last-schedule-id';
+const DRAFT_STATE_KEY = 'schedule-generation-draft';
+const DRAFT_SAVE_DEBOUNCE_MS = 400;
 
 const ScheduleStatus = {
     PROCESSING: "processing",
@@ -157,21 +159,15 @@ function clearTable() {
     if (tbody) tbody.innerHTML = '';
 }
 
-async function generateSchedule(department_id, year) {
+async function generateSchedule(requestBody) {
     blockUI();
-
-    const body = {
-        department_id: department_id,
-        year: year,
-        employee_overrides: []
-    };
 
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.generateSchedule}`, {
         method: "POST",
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify(requestBody)
     });
 
     if (!response.ok) {
@@ -473,13 +469,12 @@ async function setGenerateScheduleButtons() {
 }
 
 
-// TODO надо будет передать, так как для генерации графика теперь требуется дохуя (много) данных
-async function createAndLoadSchedule(departmentId) {
+async function createAndLoadSchedule() {
     showLoadingSpinner();
 
     try {
-        const year = new Date().getFullYear();
-        const scheduleResponse = await generateSchedule(departmentId, year);
+        const requestBody = buildGenerationRequestBody();
+        const scheduleResponse = await generateSchedule(requestBody);
         localStorage.setItem(LAST_SCHEDULE_ID_KEY, scheduleResponse.schedule_id);
 
         await pollScheduleStatus(scheduleResponse.schedule_id);
@@ -488,6 +483,7 @@ async function createAndLoadSchedule(departmentId) {
 
         renderTable(data);
         localStorage.removeItem(LAST_SCHEDULE_ID_KEY);
+        clearDraftState(); // график успешно создан — черновик больше не нужен
     } catch (error) {
         console.error(error);
         alert("Не удалось сгенерировать график. Проверьте соединение с сервером.");
@@ -498,8 +494,15 @@ async function createAndLoadSchedule(departmentId) {
     }
 }
 
-async function generateButtonCase(departmentSelector) {
-    await createAndLoadSchedule(departmentSelector.value);
+// ВНИМАНИЕ: эта функция нигде не вызывается по клику — кнопка "Начать
+// Генерацию" (.generate) сейчас ни на что не повешена (DOM.btnGenerate
+// в setChooseScheduleButtons ссылается на класс .generate, которого
+// в этот момент ещё нет в DOM — там кнопка .new-schedule). Это отдельный
+// баг, не связанный с задачей сбора данных — надо будет отдельно повесить
+// что-то вроде DOM.btnGenerate.addEventListener('click', generateButtonCase)
+// в setGenerateScheduleButtons(), когда дойдут руки.
+async function generateButtonCase() {
+    await createAndLoadSchedule();
 }
 
 function getMemoHTML() {
@@ -580,7 +583,7 @@ function getMemoHTML() {
     </section>`
 }
 
-function getSettingsCard() {
+function getSettingsCard(initialData) {
     const container = document.createElement('div');
     container.classList.add('generation-settings-container');
 
@@ -611,6 +614,7 @@ function getSettingsCard() {
     const secondDateInput = document.createElement('input');
     const checkBox = document.createElement('input');
     firstDateInput.classList.add('settings-input');
+    firstDateInput.dataset.field = 'shift-change-date-1';
     firstDateInput.placeholder = '1';
     firstDateInput.type = 'number';
     firstDateInput.min = '0';
@@ -622,6 +626,7 @@ function getSettingsCard() {
         if (value.length > 2) firstDateInput.value = firstDateInput.value.slice(0, 2);
     }
     secondDateInput.classList.add('settings-input');
+    secondDateInput.dataset.field = 'shift-change-date-2';
     secondDateInput.placeholder = '31';
     secondDateInput.type = 'number';
     secondDateInput.min = '0';
@@ -633,18 +638,44 @@ function getSettingsCard() {
         if (value.length > 2) secondDateInput.value = secondDateInput.value.slice(0, 2);
     }
     checkBox.classList.add('settings-input');
+    checkBox.dataset.field = 'auto-replace-boss';
     checkBox.type = 'checkbox';
     inputsContainer.append(firstDateInput, secondDateInput, checkBox, 'Автоматически назначать ИО (Исполняющих обязанности)');
 
+    // Раньше в UI не было полей под schedule_name и apply_senior_rules,
+    // хотя бэк их ожидает (см. документацию POST /api/schedules/generate) — добавил.
+    const nameContainer = document.createElement('div');
+    nameContainer.classList.add('generation-settings-container-inputs');
 
-    contentContainer.append(contentContainerTitle, inputsContainer);
+    const scheduleNameInput = document.createElement('input');
+    scheduleNameInput.classList.add('settings-input', 'schedule-name');
+    scheduleNameInput.dataset.field = 'schedule-name';
+    scheduleNameInput.type = 'text';
+    scheduleNameInput.placeholder = 'Название графика (необязательно)';
+
+    const seniorRulesCheckbox = document.createElement('input');
+    seniorRulesCheckbox.classList.add('settings-input');
+    seniorRulesCheckbox.dataset.field = 'apply-senior-rules';
+    seniorRulesCheckbox.type = 'checkbox';
+
+    nameContainer.append(scheduleNameInput, seniorRulesCheckbox, 'Применять правила старшинства');
+
+    if (initialData) {
+        firstDateInput.value = initialData.shiftChangeDate1 ?? '';
+        secondDateInput.value = initialData.shiftChangeDate2 ?? '';
+        checkBox.checked = initialData.autoReplaceBoss ?? false;
+        scheduleNameInput.value = initialData.scheduleName ?? '';
+        seniorRulesCheckbox.checked = initialData.applySeniorRules ?? false;
+    }
+
+    contentContainer.append(contentContainerTitle, inputsContainer, nameContainer);
 
     container.append(title, contentContainer);
 
     return container;
 }
 
-function getManagersCard() {
+function getManagersCard(initialData) {
     const container = document.createElement('div');
     container.classList.add('manager-settings-container');
 
@@ -660,12 +691,18 @@ function getManagersCard() {
                 </svg>`);
     container.append(title);
 
-    container.append(getEmployeesCard('Начальник участка'), getAddRoleButton('Добавить общую роль'));
+    const roles = Array.isArray(initialData?.roles) && initialData.roles.length > 0
+        ? initialData.roles
+        : [{role: 'Начальник участка'}];
+
+    const roleCards = roles.map(roleData => getEmployeesCard(roleData));
+
+    container.append(...roleCards, getAddRoleButton('Добавить общую роль'));
 
     return container;
 }
 
-function getGroupCard() {
+function getGroupCard(initialData) {
     const container = document.createElement('div');
     container.classList.add('group-settings-container');
 
@@ -685,7 +722,9 @@ function getGroupCard() {
     inputContainer.append(groupName);
 
     groupName.classList.add('group-name');
+    groupName.dataset.field = 'group-name';
     groupName.placeholder = 'Введите название группы...';
+    groupName.value = initialData?.name ?? '';
 
     deleteGroupButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                        <path d="M10 11v6"></path>
@@ -702,7 +741,13 @@ function getGroupCard() {
         container.remove();
     });
 
-    container.append(title, getEmployeesCard('Оператор технологических установок'), getAddRoleButton('Добавить роль/разряд на объект'));
+    const roles = Array.isArray(initialData?.roles) && initialData.roles.length > 0
+        ? initialData.roles
+        : [{role: 'Оператор технологических установок'}];
+
+    const roleCards = roles.map(roleData => getEmployeesCard(roleData));
+
+    container.append(title, ...roleCards, getAddRoleButton('Добавить роль/разряд на объект'));
 
     return container;
 }
@@ -752,7 +797,7 @@ function getAddGroupButton() {
 
         if (!button) return;
 
-       button.before(getGroupCard());
+        button.before(getGroupCard());
     });
 
     return button;
@@ -771,6 +816,7 @@ function createTitleIcon() {
 function createRoleInput(role) {
     const roleInput = document.createElement('input');
     roleInput.classList.add('employees-settings-card-role-input');
+    roleInput.dataset.field = 'role-name';
     roleInput.placeholder = 'Название роли...';
     roleInput.value = role ?? '';
     roleInput.title = role ?? '';
@@ -780,8 +826,9 @@ function createRoleInput(role) {
 function createGradeSelector() {
     const select = document.createElement('select');
     select.classList.add('employees-settings-card-selector');
+    select.dataset.field = 'role-grade';
     select.add(new Option('Без разряда', ''));
-    select.add(new Option('Руководитель', ''));
+    select.add(new Option('Руководитель', 'manager'));
     for (let i = 1; i <= 8; i++) {
         select.add(new Option(`${i} разряд`, String(i)));
     }
@@ -801,7 +848,7 @@ function createDeleteRoleButton() {
     return deleteButton;
 }
 
-function createDemandInput(labelText) {
+function createDemandInput(labelText, demandType) {
     const wrapper = document.createElement('div');
     wrapper.classList.add('demand-input-container');
 
@@ -810,6 +857,7 @@ function createDemandInput(labelText) {
 
     const input = document.createElement('input');
     input.classList.add('settings-input');
+    input.dataset.demand = demandType; // 'day' | 'night'
     input.type = 'number';
     input.min = '0';
     input.value = '0';
@@ -831,12 +879,12 @@ function createDemandContainer() {
     label.classList.add('demand-label');
     label.textContent = 'Спрос:';
 
-    const dayWrapper = createDemandInput('Д');
+    const dayWrapper = createDemandInput('Д', 'day');
 
     const divider = document.createElement('span');
     divider.classList.add('demand-divider');
 
-    const nightWrapper = createDemandInput('Н');
+    const nightWrapper = createDemandInput('Н', 'night');
 
     demandContainer.append(label, dayWrapper, divider, nightWrapper);
     return demandContainer;
@@ -909,27 +957,39 @@ function createTableContainer() {
     return tableContainer;
 }
 
-function addEmployeeCardRow() {
+function addEmployeeCardRow(initialData) {
     const tr = document.createElement('tr');
     const tdFullName = document.createElement('td');
     const tdTabNumber = document.createElement('td');
     const tdCheckBox = document.createElement('td');
 
     const inputFullName = document.createElement('input');
-    const spanTabNumber = document.createElement('span');
+    const inputTabNumber = document.createElement('input');
     const checkBoxWrapper = document.createElement('div');
     const checkBox = document.createElement('input');
     const deleteButton = document.createElement('button');
 
     inputFullName.classList.add('input-fullname');
+    inputFullName.dataset.field = 'fio';
     inputFullName.placeholder = 'Введите ФИО';
+    inputFullName.value = initialData?.fio ?? '';
 
-    spanTabNumber.textContent = '—';
+    // TODO(Дмитрий): раньше тут был статичный span "—" — таб.номер вообще
+    // нигде не собирался. Сделал обычным полем ввода. Если по факту
+    // планируется автокомплит по ФИО (см. поддержку поиска в GET /api/employees)
+    // с автоподстановкой номера — это поле нужно будет сделать readonly
+    // и заполнять программно после выбора сотрудника из списка.
+    inputTabNumber.classList.add('input-tabnumber');
+    inputTabNumber.dataset.field = 'tab-number';
+    inputTabNumber.placeholder = '—';
+    inputTabNumber.value = initialData?.tabNumber ?? '';
 
     checkBoxWrapper.classList.add('check-box-wrapper')
 
     checkBox.type = 'checkbox';
     checkBox.classList.add('add-employee-row-checkbox');
+    checkBox.dataset.field = 'on-site-at-start';
+    checkBox.checked = initialData?.onSiteAtStart ?? false;
     tdCheckBox.classList.add('cell-center');
 
     deleteButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -943,7 +1003,7 @@ function addEmployeeCardRow() {
 
     checkBoxWrapper.append(checkBox, deleteButton);
     tdFullName.append(inputFullName);
-    tdTabNumber.append(spanTabNumber);
+    tdTabNumber.append(inputTabNumber);
     tdCheckBox.append(checkBoxWrapper);
 
     tr.append(tdFullName, tdTabNumber, tdCheckBox);
@@ -951,12 +1011,36 @@ function addEmployeeCardRow() {
     return tr;
 }
 
-function getEmployeesCard(role) {
+function getEmployeesCard(roleOrData) {
+    // Принимаем либо просто строку с именем роли (старое поведение),
+    // либо объект { role, grade, demand: {day, night}, employees: [...] }
+    // — второй вариант используется при восстановлении черновика.
+    const data = typeof roleOrData === 'string' || roleOrData == null
+        ? {role: roleOrData}
+        : roleOrData;
+
     const container = document.createElement('div');
     container.classList.add('employees-settings-card');
 
-    container.append(createTitleContainer(role), createTableContainer());
+    const titleContainer = createTitleContainer(data.role);
+    const tableContainer = createTableContainer();
 
+    if (data.grade !== undefined) {
+        titleContainer.querySelector('[data-field="role-grade"]').value = data.grade ?? '';
+    }
+    if (data.demand) {
+        titleContainer.querySelector('[data-demand="day"]').value = data.demand.day ?? 0;
+        titleContainer.querySelector('[data-demand="night"]').value = data.demand.night ?? 0;
+    }
+
+    container.append(titleContainer, tableContainer);
+
+    if (Array.isArray(data.employees) && data.employees.length > 0) {
+        const tbody = tableContainer.querySelector('tbody');
+        data.employees.forEach(employeeData => {
+            tbody.append(addEmployeeCardRow(employeeData));
+        });
+    }
 
     container.addEventListener('click', (e) => {
         const target = e.target;
@@ -969,8 +1053,8 @@ function getEmployeesCard(role) {
     });
 
     container.addEventListener('click', (e) => {
-       const target = e.target;
-       const button = target.closest('button')
+        const target = e.target;
+        const button = target.closest('button')
 
         if (!button) return;
 
@@ -989,6 +1073,187 @@ function getEmployeesCard(role) {
     return container;
 }
 
+// ===================== Сбор данных из DOM ролей/групп =====================
+
+/**
+ * Собирает данные одной карточки роли (.employees-settings-card) —
+ * название, разряд, спрос день/ночь и список сотрудников.
+ */
+function collectCardData(cardEl) {
+    const roleInput = cardEl.querySelector('[data-field="role-name"]');
+    const gradeSelect = cardEl.querySelector('[data-field="role-grade"]');
+    const dayDemand = cardEl.querySelector('[data-demand="day"]');
+    const nightDemand = cardEl.querySelector('[data-demand="night"]');
+
+    const employeeRows = cardEl.querySelectorAll('tbody tr');
+
+    const employees = Array.from(employeeRows).map(row => ({
+        fio: row.querySelector('[data-field="fio"]')?.value ?? '',
+        tabNumber: row.querySelector('[data-field="tab-number"]')?.value ?? '',
+        onSiteAtStart: row.querySelector('[data-field="on-site-at-start"]')?.checked ?? false,
+    }));
+
+    return {
+        role: roleInput?.value ?? '',
+        grade: gradeSelect?.value ?? '',
+        demand: {
+            day: Number(dayDemand?.value ?? 0),
+            night: Number(nightDemand?.value ?? 0),
+        },
+        employees,
+    };
+}
+
+/** Собирает все карточки ролей внутри произвольного контейнера (группы или карточки РСС). */
+function collectRolesFrom(containerEl) {
+    const cards = containerEl.querySelectorAll(':scope > .employees-settings-card');
+    return Array.from(cards).map(collectCardData);
+}
+
+/** Собирает одну группу (локацию) — имя + роли внутри неё. */
+function collectGroupData(groupEl) {
+    return {
+        name: groupEl.querySelector('[data-field="group-name"]')?.value ?? '',
+        roles: collectRolesFrom(groupEl),
+    };
+}
+
+/** Роли РСС ("Общие роли по участку") — не привязаны к конкретной группе/локации. */
+function collectGeneralRolesData() {
+    const managersCard = document.querySelector('.manager-settings-container');
+    if (!managersCard) return [];
+    return collectRolesFrom(managersCard);
+}
+
+/** Общие настройки генерации (даты перевахтовки, флаги, название). */
+function collectGlobalSettings() {
+    const settingsCard = document.querySelector('.generation-settings-container');
+    if (!settingsCard) {
+        return {
+            scheduleName: '',
+            shiftChangeDate1: '',
+            shiftChangeDate2: '',
+            autoReplaceBoss: false,
+            applySeniorRules: false,
+        };
+    }
+
+    return {
+        scheduleName: settingsCard.querySelector('[data-field="schedule-name"]')?.value ?? '',
+        shiftChangeDate1: settingsCard.querySelector('[data-field="shift-change-date-1"]')?.value ?? '',
+        shiftChangeDate2: settingsCard.querySelector('[data-field="shift-change-date-2"]')?.value ?? '',
+        autoReplaceBoss: settingsCard.querySelector('[data-field="auto-replace-boss"]')?.checked ?? false,
+        applySeniorRules: settingsCard.querySelector('[data-field="apply-senior-rules"]')?.checked ?? false,
+    };
+}
+
+/** Собирает все группы (локации) со страницы. */
+function collectAllGroupsData() {
+    const groupEls = document.querySelectorAll('.group-settings-container');
+    return Array.from(groupEls).map(collectGroupData);
+}
+
+/**
+ * Собирает ПОЛНОЕ состояние UI генерации в одном объекте — используется
+ * и для черновика в localStorage, и как основа для тела запроса.
+ */
+function collectFullUIState() {
+    return {
+        settings: collectGlobalSettings(),
+        generalRoles: collectGeneralRolesData(),
+        groups: collectAllGroupsData(),
+    };
+}
+
+/**
+ * Собирает тело запроса под формат POST /api/schedules/generate.
+ *
+ * ВАЖНО (уточнить у бэкендера): роли РСС ("Начальник участка" и т.п. —
+ * карточка .manager-settings-container) не привязаны ни к одной группе,
+ * а API ожидает роли только внутри groups[].roles[]. Сейчас они добавляются
+ * в КАЖДУЮ группу как общие роли участка — если у бэка другая логика
+ * (например, отдельное поле в теле запроса), это место надо будет поправить.
+ */
+function buildGenerationRequestBody() {
+    const settings = collectGlobalSettings();
+    const generalRoles = collectGeneralRolesData();
+    const groups = collectAllGroupsData();
+
+    const shiftChangeDates = [settings.shiftChangeDate1, settings.shiftChangeDate2]
+        .filter(v => v !== '' && v !== null && v !== undefined)
+        .map(Number);
+
+    return {
+        year: new Date().getFullYear(),
+        schedule_name: settings.scheduleName || undefined,
+        shift_change_dates: shiftChangeDates,
+        auto_replace_boss: settings.autoReplaceBoss,
+        apply_senior_rules: settings.applySeniorRules,
+        groups: groups.map(group => ({
+            name: group.name,
+            roles: [...generalRoles, ...group.roles].map(roleToApiFormat),
+        })),
+    };
+}
+
+/** Приводит собранную роль к формату, который ждёт бэк (demand + employees). */
+function roleToApiFormat(role) {
+    return {
+        name: role.role,
+        demand: {day: role.demand.day, night: role.demand.night},
+        employees: role.employees
+            .filter(emp => emp.fio.trim() !== '') // пропускаем пустые незаполненные строки
+            .map(emp => ({
+                tabNumber: emp.tabNumber,
+                name: emp.fio,
+                on_site_at_start: emp.onSiteAtStart,
+            })),
+    };
+}
+
+// ===================== Черновик состояния UI (localStorage) =====================
+
+function debounce(fn, delay) {
+    let timeoutId;
+    return (...args) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => fn(...args), delay);
+    };
+}
+
+function saveDraftState() {
+    try {
+        const state = collectFullUIState();
+        localStorage.setItem(DRAFT_STATE_KEY, JSON.stringify(state));
+    } catch (error) {
+        console.error('Не удалось сохранить черновик:', error);
+    }
+}
+
+const debouncedSaveDraftState = debounce(saveDraftState, DRAFT_SAVE_DEBOUNCE_MS);
+
+function loadDraftState() {
+    try {
+        const raw = localStorage.getItem(DRAFT_STATE_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+        console.error('Не удалось прочитать черновик:', error);
+        return null;
+    }
+}
+
+function clearDraftState() {
+    localStorage.removeItem(DRAFT_STATE_KEY);
+}
+
+/** Вешает один делегированный листенер на весь блок генерации для автосохранения черновика. */
+function attachDraftAutoSave(rootEl) {
+    rootEl.addEventListener('input', debouncedSaveDraftState);
+    rootEl.addEventListener('change', debouncedSaveDraftState);
+    // клики, которые добавляют/удаляют роли, группы, сотрудников — тоже меняют состояние
+    rootEl.addEventListener('click', debouncedSaveDraftState);
+}
+
 async function changeUItoChooseSchedule() {
     try {
         await setChooseScheduleSelectors();
@@ -1005,8 +1270,24 @@ async function changeUItoGenerateSchedule() {
         await setGenerateScheduleSelectors()
         await setGenerateScheduleButtons()
 
+        const draft = loadDraftState();
+
         const content = DOM.content;
-        content.append(getSettingsCard(), getManagersCard(), getAddGroupButton());
+        content.append(
+            getSettingsCard(draft?.settings),
+            getManagersCard({roles: draft?.generalRoles}),
+            getAddGroupButton()
+        );
+
+        // группы (локации) добавляются перед кнопкой "Добавить новую группу"
+        const addGroupButton = content.querySelector('.add-group-button');
+        if (Array.isArray(draft?.groups)) {
+            draft.groups.forEach(groupData => {
+                addGroupButton.before(getGroupCard(groupData));
+            });
+        }
+
+        attachDraftAutoSave(content);
     } catch (error) {
         console.log(`Не удалось сменить режим: ${error}`);
     }
