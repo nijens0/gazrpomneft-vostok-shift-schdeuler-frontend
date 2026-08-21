@@ -748,8 +748,11 @@ function getAddGroupButton() {
 
     button.addEventListener('click', (e) => {
         const target = e.target;
+        const button = target.closest('button');
 
-       target.before(getGroupCard());
+        if (!button) return;
+
+       button.before(getGroupCard());
     });
 
     return button;
