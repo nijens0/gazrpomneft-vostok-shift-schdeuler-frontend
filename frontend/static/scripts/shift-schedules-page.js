@@ -709,8 +709,9 @@ function getGroupCard() {
 
     title.append(inputContainer, deleteGroupButton);
 
-
-
+    deleteGroupButton.addEventListener('click', () => {
+        container.remove();
+    });
 
     container.append(title, getEmployeesCard('Оператор технологических установок'), getAddRoleButton('Добавить роль/разряд на объект'));
 
