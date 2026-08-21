@@ -1310,7 +1310,7 @@ td.sticky-col {
         height: 32px;
         padding: 4px;
         border-radius: var(--border-radius);
-        background-color: var(--light-light-blue);
+        background-color: white;
     }
 }
 
@@ -1429,10 +1429,16 @@ td.sticky-col {
 
     & svg {
         background-color: inherit;
+        transition-duration: var(--transition-duration);
     }
 
     &:hover {
         background-color: whitesmoke;
+
+        & svg {
+            transition-duration: var(--transition-duration);
+            background-color: whitesmoke;
+        }
     }
 }
 
@@ -1461,7 +1467,7 @@ td.sticky-col {
     align-items: center;
 
     & svg {
-        background-color: var(--light-light-blue);
+        background-color: white;
     }
 }
 
@@ -1563,7 +1569,8 @@ td.sticky-col {
 
 .generation-settings-container,
 .manager-settings-container,
-.add-group-button {
+.add-group-button,
+.group-settings-container {
     width: 100%;
     max-width: 900px;
 }
@@ -1635,5 +1642,79 @@ td.sticky-col {
 
     &:hover {
         background-color: whitesmoke;
+    }
+}
+
+.group-settings-container {
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    width: 100%;
+    row-gap: 24px;
+    border: var(--border);
+    border-radius: var(--border-radius);
+    padding: 24px;
+    font-family: var(--font-family), serif;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+    color: var(--blue-gray);
+    font-weight: 500;
+    overflow: hidden;
+
+    & svg {
+        width: 32px;
+        height: 32px;
+        padding: 4px;
+        border-radius: var(--border-radius);
+        background-color: white;
+        color: var(--blue-gray);
+    }
+}
+
+.group-settings-title-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: -24px -24px 0 -24px;
+    background-color: whitesmoke;
+}
+
+.group-settings-title {
+    display: flex;
+    column-gap: 12px;
+    flex-grow: 1;
+    align-items: center;
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    padding: 24px;
+
+    & svg {
+        background-color: whitesmoke;
+    }
+}
+
+.group-name {
+    width: 400px;
+    border: none;
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    background-color: whitesmoke;
+    color: var(--blue-gray);
+}
+
+.delete-group-button {
+    background-color: whitesmoke;
+    border: none;
+    padding-right: 24px;
+
+    & svg {
+        width: 24px;
+        height: 24px;
+        color: var(--gray);
+        background-color: whitesmoke;
+        transition-duration: var(--transition-duration);
+
+        &:hover {
+            color: var(--red);
+        }
     }
 }
