@@ -723,6 +723,12 @@ function getAddRoleButton(text) {
     span.append(text);
     button.append(span);
 
+    button.addEventListener('click', () => {
+        const parent = button.parentNode;
+        const employeesSettingsCard = parent.querySelector('.employees-settings-card');
+        employeesSettingsCard.after(getEmployeesCard());
+    });
+
     return button;
 }
 
