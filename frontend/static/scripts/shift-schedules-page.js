@@ -1290,14 +1290,7 @@ function collectFullUIState() {
     };
 }
 
-/**
- * Собирает тело запроса под формат POST /api/schedules/generate.
- *
- * РСС ("Начальник участка" и т.п. — карточка .manager-settings-container)
- * подтверждено с бэкендером: идёт ОДИН РАЗ отдельной группой в массиве
- * groups, а не дублируется в каждую группу-локацию.
- */
-const RSS_GROUP_NAME = 'РСС'; // TODO: уточнить у бэкендера точное ожидаемое имя группы
+const RSS_GROUP_NAME = 'РСС';
 
 function buildGenerationRequestBody() {
     const settings = collectGlobalSettings();
