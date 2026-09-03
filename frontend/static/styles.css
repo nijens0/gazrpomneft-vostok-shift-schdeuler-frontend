@@ -1600,6 +1600,67 @@ td.sticky-col {
     color: var(--light-gray);
     border: none;
     font-weight: 600;
+    width: 100%;
+}
+
+.input-fullname-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.employee-search-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 20;
+    width: max-content;
+    min-width: 280px;
+    max-width: 360px;
+    max-height: 240px;
+    overflow-y: auto;
+    background-color: white;
+    border: var(--border);
+    border-radius: var(--border-radius);
+    box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.1);
+    font-family: var(--font-family), serif;
+}
+
+.employee-search-item {
+    display: flex;
+    align-items: center;
+    column-gap: 12px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition-duration: var(--transition-duration);
+
+    &:hover {
+        background-color: var(--light-light-blue);
+    }
+
+    &:not(:last-child) {
+        border-bottom: var(--border);
+    }
+}
+
+.employee-search-info {
+    display: flex;
+    flex-direction: column;
+    row-gap: 2px;
+    min-width: 0;
+}
+
+.employee-search-name {
+    font-size: var(--fs-md);
+    font-weight: 600;
+    color: var(--dark-blue);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.employee-search-tab {
+    font-size: var(--fs-sm);
+    color: var(--gray);
 }
 
 .check-box-wrapper {

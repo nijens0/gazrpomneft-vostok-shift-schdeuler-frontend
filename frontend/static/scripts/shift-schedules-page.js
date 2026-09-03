@@ -642,8 +642,6 @@ function getSettingsCard(initialData) {
     checkBox.type = 'checkbox';
     inputsContainer.append(firstDateInput, secondDateInput, checkBox, 'Автоматически назначать ИО (Исполняющих обязанности)');
 
-    // Раньше в UI не было полей под schedule_name и apply_senior_rules,
-    // хотя бэк их ожидает (см. документацию POST /api/schedules/generate) — добавил.
     const nameContainer = document.createElement('div');
     nameContainer.classList.add('generation-settings-container-inputs');
 
@@ -739,6 +737,7 @@ function getGroupCard(initialData) {
 
     deleteGroupButton.addEventListener('click', () => {
         container.remove();
+        cleanupOrphanDropdowns();
     });
 
     const roles = Array.isArray(initialData?.roles) && initialData.roles.length > 0
@@ -957,14 +956,135 @@ function createTableContainer() {
     return tableContainer;
 }
 
+// Реестр активных дропдаунов автокомплита — нужен, чтобы убирать их из
+// document.body, когда строку/роль/группу, к которой они относятся, удалили
+// (дропдаун вынесен в body отдельным узлом, поэтому tr.remove() его сам не уберёт).
+const activeAutocompleteDropdowns = [];
+
+function cleanupOrphanDropdowns() {
+    for (let i = activeAutocompleteDropdowns.length - 1; i >= 0; i--) {
+        const {tr, dropdown} = activeAutocompleteDropdowns[i];
+        if (!tr.isConnected) {
+            dropdown.remove();
+            activeAutocompleteDropdowns.splice(i, 1);
+        }
+    }
+}
+
+function createEmployeeAutocomplete(inputFullName, tr) {
+    const dropdown = document.createElement('div');
+    dropdown.classList.add('employee-search-dropdown');
+    dropdown.hidden = true;
+    // Дропдаун кладём в body, а не рядом с инпутом — .settings-table-container
+    // у таблицы стоит overflow: hidden (нужен для скруглённых углов таблицы),
+    // и он обрезал бы дропдаун, если оставить его внутри таблицы.
+    document.body.append(dropdown);
+    activeAutocompleteDropdowns.push({tr, dropdown});
+
+    function positionDropdown() {
+        const rect = inputFullName.getBoundingClientRect();
+        dropdown.style.position = 'fixed';
+        dropdown.style.top = `${rect.bottom + 4}px`;
+        dropdown.style.left = `${rect.left}px`;
+        dropdown.style.minWidth = `${Math.max(rect.width, 280)}px`;
+    }
+
+    function renderResults(employees) {
+        dropdown.innerHTML = '';
+
+        if (!employees || employees.length === 0) {
+            dropdown.hidden = true;
+            return;
+        }
+
+        employees.forEach(emp => {
+            const item = document.createElement('div');
+            item.classList.add('employee-search-item');
+
+            const name = emp.full_name ?? '';
+            const tabNumber = emp.tab_number ?? '';
+
+            const info = document.createElement('div');
+            info.classList.add('employee-search-info');
+
+            const nameEl = document.createElement('div');
+            nameEl.classList.add('employee-search-name');
+            nameEl.textContent = name;
+
+            const tabEl = document.createElement('div');
+            tabEl.classList.add('employee-search-tab');
+            tabEl.textContent = `Таб. № ${tabNumber}`;
+
+            info.append(nameEl, tabEl);
+            item.append(info);
+
+            item.addEventListener('click', () => {
+                inputFullName.value = name;
+                tr.dataset.tabNumber = tabNumber;
+                const tabDisplay = tr.querySelector('[data-field="tab-number"]');
+                if (tabDisplay) tabDisplay.textContent = tabNumber || '—';
+                dropdown.hidden = true;
+            });
+
+            dropdown.append(item);
+        });
+
+        positionDropdown();
+        dropdown.hidden = false;
+    }
+
+    const debouncedSearch = debounce(async (query) => {
+        cleanupOrphanDropdowns();
+
+        if (!query.trim()) {
+            dropdown.hidden = true;
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.searchEmployees(encodeURIComponent(query.trim()))}`);
+            if (!response.ok) throw new Error(`Ошибка поиска сотрудников: ${response.status}`);
+            const employees = await response.json();
+            renderResults(employees);
+        } catch (error) {
+            console.error(error);
+            dropdown.hidden = true;
+        }
+    }, 500);
+
+    inputFullName.addEventListener('input', () => {
+        // как только человек начал печатать заново — старая привязка к таб.номеру не актуальна
+        tr.dataset.tabNumber = '';
+        const tabDisplay = tr.querySelector('[data-field="tab-number"]');
+        if (tabDisplay) tabDisplay.textContent = '—';
+
+        debouncedSearch(inputFullName.value);
+    });
+
+    window.addEventListener('scroll', () => {
+        if (!dropdown.hidden) positionDropdown();
+    }, true);
+
+    document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target) && e.target !== inputFullName) {
+            dropdown.hidden = true;
+        }
+    });
+
+    return dropdown;
+}
+
 function addEmployeeCardRow(initialData) {
     const tr = document.createElement('tr');
     const tdFullName = document.createElement('td');
     const tdTabNumber = document.createElement('td');
     const tdCheckBox = document.createElement('td');
 
+    const fullNameWrapper = document.createElement('div');
+    fullNameWrapper.classList.add('input-fullname-wrapper');
+
     const inputFullName = document.createElement('input');
-    const inputTabNumber = document.createElement('input');
+    const spanTabNumber = document.createElement('span');
     const checkBoxWrapper = document.createElement('div');
     const checkBox = document.createElement('input');
     const deleteButton = document.createElement('button');
@@ -974,15 +1094,17 @@ function addEmployeeCardRow(initialData) {
     inputFullName.placeholder = 'Введите ФИО';
     inputFullName.value = initialData?.fio ?? '';
 
-    // TODO(Дмитрий): раньше тут был статичный span "—" — таб.номер вообще
-    // нигде не собирался. Сделал обычным полем ввода. Если по факту
-    // планируется автокомплит по ФИО (см. поддержку поиска в GET /api/employees)
-    // с автоподстановкой номера — это поле нужно будет сделать readonly
-    // и заполнять программно после выбора сотрудника из списка.
-    inputTabNumber.classList.add('input-tabnumber');
-    inputTabNumber.dataset.field = 'tab-number';
-    inputTabNumber.placeholder = '—';
-    inputTabNumber.value = initialData?.tabNumber ?? '';
+    // Таб.№ не вводится руками — подставляется автокомплитом по ФИО
+    // (поиск через GET /api/employees?search=<query> с debounce 500мс).
+    // Реальное значение хранится в tr.dataset.tabNumber, span — просто отображение.
+    spanTabNumber.dataset.field = 'tab-number';
+    spanTabNumber.textContent = initialData?.tabNumber || '—';
+    tr.dataset.tabNumber = initialData?.tabNumber ?? '';
+
+    // createEmployeeAutocomplete сам кладёт дропдаун в document.body (портал,
+    // см. комментарий внутри) — сюда добавляем только сам инпут.
+    createEmployeeAutocomplete(inputFullName, tr);
+    fullNameWrapper.append(inputFullName);
 
     checkBoxWrapper.classList.add('check-box-wrapper')
 
@@ -1002,8 +1124,8 @@ function addEmployeeCardRow(initialData) {
     deleteButton.classList.add('delete-employee-row-button')
 
     checkBoxWrapper.append(checkBox, deleteButton);
-    tdFullName.append(inputFullName);
-    tdTabNumber.append(inputTabNumber);
+    tdFullName.append(fullNameWrapper);
+    tdTabNumber.append(spanTabNumber);
     tdCheckBox.append(checkBoxWrapper);
 
     tr.append(tdFullName, tdTabNumber, tdCheckBox);
@@ -1044,9 +1166,10 @@ function getEmployeesCard(roleOrData) {
 
     container.addEventListener('click', (e) => {
         const target = e.target;
+        const addEmployeeTrigger = target.closest('.settings-add-employee');
 
-        if (target.tagName === 'SPAN') {
-            const tbody = target.closest('table').querySelector('tbody');
+        if (addEmployeeTrigger) {
+            const tbody = addEmployeeTrigger.closest('table').querySelector('tbody');
             tbody.append(addEmployeeCardRow());
         }
 
@@ -1061,11 +1184,13 @@ function getEmployeesCard(roleOrData) {
         if (button.classList.contains('delete-employee-row-button')) {
             const tr = button.closest('tr');
             tr.remove();
+            cleanupOrphanDropdowns();
         }
 
         if (button.classList.contains('delete-role-button')) {
             const roleCard = target.closest('.employees-settings-card');
             roleCard.remove();
+            cleanupOrphanDropdowns();
         }
 
     });
@@ -1089,7 +1214,7 @@ function collectCardData(cardEl) {
 
     const employees = Array.from(employeeRows).map(row => ({
         fio: row.querySelector('[data-field="fio"]')?.value ?? '',
-        tabNumber: row.querySelector('[data-field="tab-number"]')?.value ?? '',
+        tabNumber: row.dataset.tabNumber ?? '',
         onSiteAtStart: row.querySelector('[data-field="on-site-at-start"]')?.checked ?? false,
     }));
 
@@ -1168,12 +1293,12 @@ function collectFullUIState() {
 /**
  * Собирает тело запроса под формат POST /api/schedules/generate.
  *
- * ВАЖНО (уточнить у бэкендера): роли РСС ("Начальник участка" и т.п. —
- * карточка .manager-settings-container) не привязаны ни к одной группе,
- * а API ожидает роли только внутри groups[].roles[]. Сейчас они добавляются
- * в КАЖДУЮ группу как общие роли участка — если у бэка другая логика
- * (например, отдельное поле в теле запроса), это место надо будет поправить.
+ * РСС ("Начальник участка" и т.п. — карточка .manager-settings-container)
+ * подтверждено с бэкендером: идёт ОДИН РАЗ отдельной группой в массиве
+ * groups, а не дублируется в каждую группу-локацию.
  */
+const RSS_GROUP_NAME = 'РСС'; // TODO: уточнить у бэкендера точное ожидаемое имя группы
+
 function buildGenerationRequestBody() {
     const settings = collectGlobalSettings();
     const generalRoles = collectGeneralRolesData();
@@ -1183,15 +1308,20 @@ function buildGenerationRequestBody() {
         .filter(v => v !== '' && v !== null && v !== undefined)
         .map(Number);
 
+    const allGroups = [
+        {name: RSS_GROUP_NAME, roles: generalRoles},
+        ...groups,
+    ];
+
     return {
         year: new Date().getFullYear(),
         schedule_name: settings.scheduleName || undefined,
         shift_change_dates: shiftChangeDates,
         auto_replace_boss: settings.autoReplaceBoss,
         apply_senior_rules: settings.applySeniorRules,
-        groups: groups.map(group => ({
+        groups: allGroups.map(group => ({
             name: group.name,
-            roles: [...generalRoles, ...group.roles].map(roleToApiFormat),
+            roles: group.roles.map(roleToApiFormat),
         })),
     };
 }
