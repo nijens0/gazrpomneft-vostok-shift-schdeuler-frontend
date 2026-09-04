@@ -44,10 +44,10 @@ const FIRST_COLUMNS_PERIODS =
     {key: 'first_part', label: 'ПЕРИОД', rowspan: '1', colspan: '5', align: 'center'}
 
 const SECOND_COLUMNS_VACATIONS = [
-    {key: '', label: 'НОРМА', rowspan: '1', colspan: '1', direction: 'horizontal', align: 'center'},
-    {key: '', label: 'ДОП.', rowspan: '1', colspan: '1', direction: 'horizontal', align: 'center'},
-    {key: '', label: 'ОСТАТКИ', rowspan: '1', colspan: '1', direction: 'horizontal', align: 'center'},
-    {key: '', label: 'ИТОГО', rowspan: '1', colspan: '1', direction: 'horizontal', align: 'center'}
+    {key: 'norm_days', label: 'НОРМА', rowspan: '1', colspan: '1', direction: 'horizontal', align: 'center'},
+    {key: 'extra_days', label: 'ДОП.', rowspan: '1', colspan: '1', direction: 'horizontal', align: 'center'},
+    {key: 'unused_days', label: 'ОСТАТКИ', rowspan: '1', colspan: '1', direction: 'horizontal', align: 'center'},
+    {key: 'total_days', label: 'ИТОГО', rowspan: '1', colspan: '1', direction: 'horizontal', align: 'center'}
 ];
 
 const SECOND_COLUMNS_PERIODS = [
