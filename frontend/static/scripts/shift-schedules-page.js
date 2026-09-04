@@ -194,17 +194,28 @@ async function getTableData(scheduleId, month) {
     }
 }
 
-function renderTable(monthlyScheduleInfo) {
-    const tableContainer = renderTableContainer()
-    renderTableHead()
+function renderTable(monthlyScheduleInfo, month) {
+    const tableContainer = renderTableContainer();
+    const thead = tableContainer.querySelector('thead');
+    const tbody = tableContainer.querySelector('tbody');
 
-    const tbody = document.querySelector('.table tbody');
+    renderTableHead(month, thead);
 
     for (const [roleName, employees] of Object.entries(monthlyScheduleInfo.roles)) {
         employees.forEach(employee => {
             const rows = renderEmployeeRows(employee, roleName);
             tbody.append(...rows);
         });
+    }
+
+    // Вставляем свежесозданный контейнер в DOM — стили (.table-container:
+    // border-radius, overflow, скролл) завязаны именно на этот класс,
+    // поэтому таблица должна реально быть в документе, а не только создана в памяти.
+    const existingContainer = DOM.tableContainer;
+    if (existingContainer) {
+        existingContainer.replaceWith(tableContainer);
+    } else {
+        (DOM.toolbar ?? DOM.selectorsContainer)?.after(tableContainer);
     }
 
     return tableContainer;
@@ -269,9 +280,7 @@ function renderEmployeeRows(employee, roleName) {
     return [row1, row2, row3];
 }
 
-function renderTableHead(month) {
-    const tableHead = DOM.tableHead;
-
+function renderTableHead(month, theadEl) {
     const tr1 = document.createElement('tr');
     const tr2 = document.createElement('tr');
 
@@ -297,7 +306,7 @@ function renderTableHead(month) {
         tr2.append(th);
     });
 
-    tableHead.append(tr1, tr2);
+    theadEl.append(tr1, tr2);
 }
 
 
@@ -414,7 +423,7 @@ async function setChooseScheduleSelectors() {
 
         selectorsContainer.innerHTML = '';
         selectorsContainer.append(schedulesSelector, monthSelector);
-        attachSelectorListenersToRenderTable()
+        await attachSelectorListenersToRenderTable()
     } catch (error) {
         console.error('Не удалось загрузить графики:', error);
         throw new Error(error);
@@ -490,7 +499,7 @@ async function createAndLoadSchedule() {
 
         const data = await getTableData(scheduleResponse.schedule_id, 1);
 
-        renderTable(data);
+        renderTable(data, MONTHS[0]);
         localStorage.removeItem(LAST_SCHEDULE_ID_KEY);
         clearDraftState(); // график успешно создан — черновик больше не нужен
     } catch (error) {
@@ -1519,6 +1528,7 @@ async function changeUItoChooseSchedule() {
         await setChooseScheduleSelectors();
         setChooseScheduleButtons();
 
+        document.querySelector('.memo-container')?.remove(); // не плодим памятки при повторном входе
         DOM.tableContainer.insertAdjacentHTML('afterend', getMemoHTML());
     } catch (error) {
         console.log(`Не удалось сменить режим: ${error}`);
@@ -1527,6 +1537,10 @@ async function changeUItoChooseSchedule() {
 
 async function changeUItoGenerateSchedule() {
     try {
+        DOM.content.innerHTML = ''; // защитно, на случай повторного входа без промежуточного choose-режима
+        document.querySelector('.memo-container')?.remove();
+        DOM.tableContainer?.remove(); // таблица графика не нужна на экране предгенерации
+
         await setGenerateScheduleSelectors()
         await setGenerateScheduleButtons()
 
@@ -1581,7 +1595,8 @@ async function updateTableData() {
 
     try {
         const tableData = await getTableData(selectors[0].value, selectors[1].value);
-        renderTable(tableData);
+        const month = MONTHS[Number(selectors[1].value) - 1];
+        renderTable(tableData, month);
     } catch (error) {
         console.error(error.message);
     }
@@ -1591,7 +1606,7 @@ function attachSelectorListenersToRenderTable() {
     DOM.allSelectors.forEach(selector => {
         selector.addEventListener("change", updateTableData);
     });
-    updateTableData();
+    return updateTableData();
 }
 
 async function pollScheduleStatus(scheduleId) {
@@ -1628,7 +1643,7 @@ async function checkGenerationStatus() {
     try {
         await pollScheduleStatus(lastScheduleId);
         const data = await getTableData(lastScheduleId, 1);
-        renderTable(data);
+        renderTable(data, MONTHS[0]);
         localStorage.removeItem(LAST_SCHEDULE_ID_KEY);
     } catch (error) {
         console.error("Ошибка при восстановлении генерации:", error);

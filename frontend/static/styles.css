@@ -1042,6 +1042,10 @@ body {
     white-space: normal;
 }
 
+.cell-vertical {
+    writing-mode: vertical-rl;
+}
+
 .sticky-col {
     min-width: 250px;
     position: sticky;
@@ -1661,6 +1665,12 @@ td.sticky-col {
 .employee-search-tab {
     font-size: var(--fs-sm);
     color: var(--gray);
+}
+
+.field-invalid {
+    outline: 2px solid var(--red);
+    outline-offset: -1px;
+    border-radius: var(--border-radius);
 }
 
 .check-box-wrapper {
