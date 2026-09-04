@@ -37,12 +37,11 @@ const FIRST_COLUMNS = [
     {key: 'department_name', label: 'УЧАСТОК', rowspan: '2', colspan: '1'},
     {key: 'role_name', label: 'ДОЛЖНОСТЬ', rowspan: '2', colspan: '1'},
     {key: 'full_name', label: 'ФИО', rowspan: '2', colspan: '1'},
-    {key: 'vacation', label: 'ОТПУСК', rowspan: '1', colspan: '4'},
-    {key: 'first_part', label: 'ПЕРИОД 1', rowspan: '1', colspan: '4'},
-    {key: 'second_part', label: 'ПЕРИОД 2', rowspan: '1', colspan: '4'},
-    {key: 'third_part', label: 'ПЕРИОД 3', rowspan: '1', colspan: '4'},
-    {key: 'fourth_part', label: 'ПЕРИОД 4', rowspan: '1', colspan: '4'},
-]
+    {key: 'vacation', label: 'ОТПУСК', rowspan: '1', colspan: '4', align: 'center'}
+];
+
+const FIRST_COLUMNS_PERIODS =
+    {key: 'first_part', label: 'ПЕРИОД', rowspan: '1', colspan: '5', align: 'center'}
 
 const SECOND_COLUMNS = [
     {key: '', label: 'НОРМА', rowspan: '1', colspan: '1', direction: 'horizontal'},
