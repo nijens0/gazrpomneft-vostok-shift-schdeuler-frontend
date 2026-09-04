@@ -73,20 +73,94 @@ function createTableHead() {
         tr1.append(th);
     }
 
-    for (let i = 0; i < SECOND_COLUMNS.length; i++) {
+    for (let i = 0; i < periods; i++) {
         const th = document.createElement('th');
-        th.textContent = SECOND_COLUMNS[i].label;
-        th.rowSpan = SECOND_COLUMNS[i].rowspan;
-        th.colSpan = SECOND_COLUMNS[i].colspan;
-        if (SECOND_COLUMNS[i].direction === 'vertical') th.classList.add('cell-vertical');
+        th.textContent = FIRST_COLUMNS_PERIODS.label + ` ${i + 1}`;
+        th.rowSpan = FIRST_COLUMNS_PERIODS.rowspan;
+        th.colSpan = FIRST_COLUMNS_PERIODS.colspan;
+        th.classList.add(`cell-${FIRST_COLUMNS_PERIODS.align}`);
+        tr1.append(th);
+    }
+
+    for (let i = 0; i < SECOND_COLUMNS_VACATIONS.length; i++) {
+        const th = document.createElement('th');
+        th.textContent = SECOND_COLUMNS_VACATIONS[i].label;
+        th.rowSpan = SECOND_COLUMNS_VACATIONS[i].rowspan;
+        th.colSpan = SECOND_COLUMNS_VACATIONS[i].colspan;
+        if (SECOND_COLUMNS_VACATIONS[i].direction === 'vertical') th.classList.add('cell-vertical');
+        if (SECOND_COLUMNS_VACATIONS[i].align) th.classList.add(`cell-${SECOND_COLUMNS_VACATIONS[i].align}`);
         tr2.append(th);
     }
 
-    thead.append(tr1,tr2);
+    for (let i = 0; i < periods; i++) {
+        for (let j = 0; j < SECOND_COLUMNS_PERIODS.length; j++) {
+            const th = document.createElement('th');
+            th.textContent = SECOND_COLUMNS_PERIODS[j].label;
+            th.rowSpan = SECOND_COLUMNS_PERIODS[j].rowspan;
+            th.colSpan = SECOND_COLUMNS_PERIODS[j].colspan;
+            th.classList.add(`cell-${SECOND_COLUMNS_PERIODS[j].align}`);
+            if (SECOND_COLUMNS_PERIODS[j].direction === 'vertical') th.classList.add('cell-vertical');
+            tr2.append(th);
+        }
+    }
+
+    thead.append(tr1, tr2);
 
     return thead
 }
 
-export function init() {
+async function createTableBody() {
+    const year = new Date().getFullYear();
+    const tbody = document.createElement('tbody');
 
+    try {
+        const data = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getVacations(year)}`);
+        const dataJson = await data.json();
+        console.log(dataJson);
+        dataJson.data.map(data => new VacationData(data));
+
+
+        dataJson.data.forEach(vacationData => {
+            const tr = document.createElement('tr');
+
+
+        });
+    } catch (error) {
+        console.log(`Не удалось получить отпуска ${error}`);
+        throw new Error(error);
+    }
+
+    return tbody;
+}
+
+function createTableContainer() {
+    const div = document.createElement('div');
+    div.classList.add('table-container');
+
+    return div;
+}
+
+async function getTable() {
+    const tableContainer = createTableContainer();
+    const table = document.createElement('table');
+    const thead = createTableHead();
+    const tbody = await createTableBody();
+
+
+    tableContainer.append(table);
+    table.classList.add('table');
+    table.append(thead, tbody);
+
+    return tableContainer;
+}
+
+async function initTableUI() {
+    const page = DOM.getPage();
+
+    const table = await getTable();
+    page.append(table);
+}
+
+export async function init() {
+    await initTableUI();
 }
