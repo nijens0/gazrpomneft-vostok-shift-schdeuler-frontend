@@ -176,82 +176,31 @@ function exportEmployeesTableListener() {
     }
 }
 
-function importEmployeesTable(event) {
+async function importEmployeesTable(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
+    const formData = new FormData();
+    formData.append('file', file);
 
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
-
-            const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-
-            if (jsonData.length === 0) {
-                alert("Файл пуст!");
-                return;
-            }
-
-            const fileHeaders = jsonData[0];
-            if (!fileHeaders || fileHeaders.length < columns.length) {
-                alert("Ошибка импорта! Количество колонок в файле не соответствует шаблону.");
-                return;
-            }
-
-            for (let i = 0; i < columns.length; i++) {
-                const fileHeaderClean = String(fileHeaders[i] || '').trim().toLowerCase();
-                const expectedHeaderClean = columns[i].label.trim().toLowerCase();
-
-                if (fileHeaderClean !== expectedHeaderClean) {
-                    alert(`Ошибка формата таблицы!\n\nОжидалась колонка "${columns[i].label}" на позиции ${i + 1}.\nВместо этого обнаружено: "${fileHeaders[i] || '[Пусто]'}"`);
-                    return;
-                }
-            }
-
-            const importedUsers = [];
-
-            for (let i = 1; i < jsonData.length; i++) {
-                const row = jsonData[i];
-                if (!row || row.length === 0 || !row[0]) continue;
-
-                const fullName = String(row[0]).trim();
-                const nameParts = fullName.split(/\s+/);
-
-                const employeeData = {
-                    id: row[1] ? String(row[1]).trim() : "",
-                    role_id: row[2] ? String(row[2]).trim() : "",
-                    department_id: row[4] ? String(row[4]).trim() : "",
-                    work_method: row[11] ? String(row[11]).trim() : "",
-
-                    last_name: nameParts[0] || "",
-                    first_name: nameParts[1] || "",
-                    middle_name: nameParts[2] || ""
-                };
-
-                importedUsers.push(new Employee(employeeData));
-            }
-
-            renderTable(importedUsers);
-            alert(`Импорт успешно завершен! Добавлено сотрудников: ${importedUsers.length}`);
-
-        } catch (error) {
-            alert("Не удалось распознать Excel-файл. Убедитесь, что файл не поврежден.");
+    fetch(`${API_BASE_URL}${API_ENDPOINTS.importEmployees}`, {
+        method: 'POST',
+        body: formData
+    }).then(response => {
+        if (response.ok) {
+            alert('Сотрудники успешно загружены!');
+            location.reload();
         }
-    };
-
-    reader.readAsArrayBuffer(file);
-
-    event.target.value = '';
+        else {
+            alert('Сотрудники не загружен!!')
+        }
+    });
 }
 
 function importEmployeesTableListener() {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
-    fileInput.accept = '.xlsx, .xls';
+    fileInput.accept = '.xlsx,.xlsm,.xltx,.xltm';
     fileInput.style.display = 'none';
     document.body.appendChild(fileInput);
     fileInput.click();
@@ -476,7 +425,6 @@ export function init() {
     DOM.searchIcon.addEventListener('click', findEmployee);
 
     getUsers().then(users => {
-        console.log(users);
         renderTable(users);
 
         let backup = []
