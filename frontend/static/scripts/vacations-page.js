@@ -69,6 +69,7 @@ function createTableHead() {
         th.textContent = FIRST_COLUMNS[i].label;
         th.rowSpan = FIRST_COLUMNS[i].rowspan;
         th.colSpan = FIRST_COLUMNS[i].colspan;
+        if (FIRST_COLUMNS[i].align) th.classList.add(`cell-${FIRST_COLUMNS[i].align}`);
         tr1.append(th);
     }
 
