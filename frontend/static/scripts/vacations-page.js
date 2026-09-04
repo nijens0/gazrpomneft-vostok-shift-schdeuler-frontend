@@ -23,6 +23,14 @@ class VacationLimits {
     }
 }
 
+const DOM = {
+    getPage() {
+        return document.querySelector('.page');
+    }
+}
+
+const periods = 4;
+
 const FIRST_COLUMNS = [
     {key: 'tab_number', label: 'ТАБ.№', rowspan: '2', colspan: '1'},
     {key: 'facility_name', label: 'ПРОМЫСЕЛ', rowspan: '2', colspan: '1'},
