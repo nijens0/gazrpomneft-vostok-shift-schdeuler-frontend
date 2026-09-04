@@ -5,10 +5,12 @@ export const API_ENDPOINTS = {
     searchEmployees: (query) => `/employees?search=${query}`,
     updateEmployee: (tabNumber) => `/employees/${tabNumber}`,
     deleteEmployee: (tabNumber) => `/employees/${tabNumber}`,
+    importEmployees: "/employees/upload",
     generateSchedule: "/schedules/generate",
     getSchedule: (id, month) => `/schedules/${id}?month=${month}`,
     getSchedules: "/schedules",
     getScheduleStatus: (id) => `/schedules/status/${id}`,
     getFacilities: "/facilities",
-    getDepartments: (facilityId) => `/facilities/${facilityId}/departments`
+    getDepartments: (facilityId) => `/facilities/${facilityId}/departments`,
+    getVacations: (year) => `/vacations?year=${year}`,
 }
