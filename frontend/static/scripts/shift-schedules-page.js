@@ -399,6 +399,7 @@ async function setChooseScheduleSelectors() {
             const option = document.createElement('option');
             option.value = schedule.id;
             option.text = schedule.name;
+            schedulesSelector.append(option);
         });
 
         const monthSelector = document.createElement('select');
@@ -436,7 +437,7 @@ function setChooseScheduleButtons() {
             Новый график
         </button>`;
 
-    DOM.btnGenerate.addEventListener('click', handleNewScheduleClick)
+    DOM.btnNewSchedule.addEventListener('click', handleNewScheduleClick)
 }
 
 async function setGenerateScheduleButtons() {
@@ -450,6 +451,8 @@ async function setGenerateScheduleButtons() {
         <button class="add-button generate" disabled>
             Начать Генерацию
         </button>`;
+
+        DOM.btnGenerate.addEventListener('click', generateButtonCase);
 
         const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getSchedules}`);
 
@@ -470,6 +473,12 @@ async function setGenerateScheduleButtons() {
 
 
 async function createAndLoadSchedule() {
+    const validationErrors = validateGenerationForm();
+    if (validationErrors.length > 0) {
+        alert(`Заполните обязательные поля:\n\n${validationErrors.join('\n')}`);
+        return;
+    }
+
     showLoadingSpinner();
 
     try {
@@ -494,13 +503,6 @@ async function createAndLoadSchedule() {
     }
 }
 
-// ВНИМАНИЕ: эта функция нигде не вызывается по клику — кнопка "Начать
-// Генерацию" (.generate) сейчас ни на что не повешена (DOM.btnGenerate
-// в setChooseScheduleButtons ссылается на класс .generate, которого
-// в этот момент ещё нет в DOM — там кнопка .new-schedule). Это отдельный
-// баг, не связанный с задачей сбора данных — надо будет отдельно повесить
-// что-то вроде DOM.btnGenerate.addEventListener('click', generateButtonCase)
-// в setGenerateScheduleButtons(), когда дойдут руки.
 async function generateButtonCase() {
     await createAndLoadSchedule();
 }
@@ -642,11 +644,13 @@ function getSettingsCard(initialData) {
     checkBox.type = 'checkbox';
     inputsContainer.append(firstDateInput, secondDateInput, checkBox, 'Автоматически назначать ИО (Исполняющих обязанности)');
 
+    // Раньше в UI не было полей под schedule_name и apply_senior_rules,
+    // хотя бэк их ожидает (см. документацию POST /api/schedules/generate) — добавил.
     const nameContainer = document.createElement('div');
     nameContainer.classList.add('generation-settings-container-inputs');
 
     const scheduleNameInput = document.createElement('input');
-    scheduleNameInput.classList.add('settings-input', 'schedule-name');
+    scheduleNameInput.classList.add('settings-input');
     scheduleNameInput.dataset.field = 'schedule-name';
     scheduleNameInput.type = 'text';
     scheduleNameInput.placeholder = 'Название графика (необязательно)';
@@ -1290,7 +1294,14 @@ function collectFullUIState() {
     };
 }
 
-const RSS_GROUP_NAME = 'РСС';
+/**
+ * Собирает тело запроса под формат POST /api/schedules/generate.
+ *
+ * РСС ("Начальник участка" и т.п. — карточка .manager-settings-container)
+ * подтверждено с бэкендером: идёт ОДИН РАЗ отдельной группой в массиве
+ * groups, а не дублируется в каждую группу-локацию.
+ */
+const RSS_GROUP_NAME = 'РСС'; // TODO: уточнить у бэкендера точное ожидаемое имя группы
 
 function buildGenerationRequestBody() {
     const settings = collectGlobalSettings();
@@ -1332,6 +1343,113 @@ function roleToApiFormat(role) {
                 on_site_at_start: emp.onSiteAtStart,
             })),
     };
+}
+
+// ===================== Валидация формы генерации =====================
+
+function markInvalid(el, isInvalid, silent) {
+    if (!el || silent) return;
+    el.classList.toggle('field-invalid', isInvalid);
+}
+
+/** Спрос считается заполненным, если хотя бы одно из значений (день/ночь) больше 0. */
+function isDemandFilled(demand) {
+    return (Number(demand.day) || 0) + (Number(demand.night) || 0) > 0;
+}
+
+/** Валидирует одну карточку роли: название, спрос, сотрудников (таб.№/ФИО). */
+function validateRoleCard(cardEl, silent) {
+    const errors = [];
+
+    const roleInput = cardEl.querySelector('[data-field="role-name"]');
+    const dayDemand = cardEl.querySelector('[data-demand="day"]');
+    const nightDemand = cardEl.querySelector('[data-demand="night"]');
+    const roleName = roleInput?.value.trim() ?? '';
+    const roleLabel = roleName || '(без названия)';
+
+    const roleNameFilled = roleName !== '';
+    markInvalid(roleInput, !roleNameFilled, silent);
+    if (!roleNameFilled) errors.push('Не заполнено название роли');
+
+    const demand = {
+        day: Number(dayDemand?.value ?? 0),
+        night: Number(nightDemand?.value ?? 0),
+    };
+    const demandOk = isDemandFilled(demand);
+    markInvalid(dayDemand, !demandOk, silent);
+    markInvalid(nightDemand, !demandOk, silent);
+    if (!demandOk) errors.push(`Роль "${roleLabel}": спрос не заполнен (день и ночь равны 0)`);
+
+    let validEmployeesCount = 0;
+    const rows = cardEl.querySelectorAll('tbody tr');
+
+    rows.forEach(row => {
+        const fioInput = row.querySelector('[data-field="fio"]');
+        const fio = fioInput?.value.trim() ?? '';
+        const tabNumber = row.dataset.tabNumber?.trim() ?? '';
+
+        if (fio === '' && tabNumber === '') return; // пустая незаполненная строка — пропускаем
+
+        const rowValid = fio !== '' && tabNumber !== '';
+        markInvalid(fioInput, !rowValid, silent);
+
+        if (rowValid) {
+            validEmployeesCount++;
+        } else {
+            errors.push(`Роль "${roleLabel}": сотрудник "${fio || '—'}" не выбран из списка (нет таб. номера)`);
+        }
+    });
+
+    if (validEmployeesCount === 0) {
+        errors.push(`Роль "${roleLabel}": нет ни одного сотрудника`);
+    }
+
+    return errors;
+}
+
+/**
+ * Полная валидация формы генерации графика. По умолчанию помечает
+ * невалидные поля классом .field-invalid — передай silent=true, чтобы
+ * только проверить валидность без подсветки (например, для живого
+ * enable/disable кнопки генерации на каждое изменение формы).
+ * Возвращает список текстовых ошибок — пустой массив значит, что
+ * форму можно отправлять.
+ */
+function validateGenerationForm(silent = false) {
+    const errors = [];
+
+    const settingsCard = document.querySelector('.generation-settings-container');
+    const date1 = settingsCard?.querySelector('[data-field="shift-change-date-1"]');
+    const date2 = settingsCard?.querySelector('[data-field="shift-change-date-2"]');
+    const date1Filled = (date1?.value.trim() ?? '') !== '';
+    const date2Filled = (date2?.value.trim() ?? '') !== '';
+
+    markInvalid(date1, !date1Filled, silent);
+    markInvalid(date2, !date2Filled, silent);
+    if (!date1Filled || !date2Filled) errors.push('Не заполнены даты перевахтовок');
+
+    const managersCard = document.querySelector('.manager-settings-container');
+    if (managersCard) {
+        managersCard.querySelectorAll(':scope > .employees-settings-card')
+            .forEach(card => errors.push(...validateRoleCard(card, silent)));
+    }
+
+    const groupEls = document.querySelectorAll('.group-settings-container');
+    if (groupEls.length === 0) {
+        errors.push('Нужна хотя бы одна группа');
+    }
+
+    groupEls.forEach(groupEl => {
+        const nameInput = groupEl.querySelector('[data-field="group-name"]');
+        const nameFilled = (nameInput?.value.trim() ?? '') !== '';
+        markInvalid(nameInput, !nameFilled, silent);
+        if (!nameFilled) errors.push('У группы не заполнено название');
+
+        groupEl.querySelectorAll(':scope > .employees-settings-card')
+            .forEach(card => errors.push(...validateRoleCard(card, silent)));
+    });
+
+    return errors;
 }
 
 // ===================== Черновик состояния UI (localStorage) =====================
@@ -1377,8 +1495,27 @@ function attachDraftAutoSave(rootEl) {
     rootEl.addEventListener('click', debouncedSaveDraftState);
 }
 
+/** Живое enable/disable кнопки "Начать Генерацию" — без подсветки полей. */
+function updateGenerateButtonState() {
+    const btn = DOM.btnGenerate;
+    if (!btn) return;
+    btn.disabled = validateGenerationForm(true).length > 0;
+}
+
+/** Снимает подсветку ошибки с поля сразу, как только пользователь начал его исправлять. */
+function attachLiveValidationClear(rootEl) {
+    const clear = (e) => e.target.classList?.remove('field-invalid');
+    rootEl.addEventListener('input', clear);
+    rootEl.addEventListener('change', clear);
+    rootEl.addEventListener('input', updateGenerateButtonState);
+    rootEl.addEventListener('change', updateGenerateButtonState);
+    rootEl.addEventListener('click', updateGenerateButtonState);
+}
+
 async function changeUItoChooseSchedule() {
     try {
+        DOM.content.innerHTML = ''; // убираем карточки генерации (настройки/РСС/группы), если были
+
         await setChooseScheduleSelectors();
         setChooseScheduleButtons();
 
@@ -1411,6 +1548,8 @@ async function changeUItoGenerateSchedule() {
         }
 
         attachDraftAutoSave(content);
+        attachLiveValidationClear(content);
+        updateGenerateButtonState();
     } catch (error) {
         console.log(`Не удалось сменить режим: ${error}`);
     }
