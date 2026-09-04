@@ -659,7 +659,7 @@ function getSettingsCard(initialData) {
     nameContainer.classList.add('generation-settings-container-inputs');
 
     const scheduleNameInput = document.createElement('input');
-    scheduleNameInput.classList.add('settings-input');
+    scheduleNameInput.classList.add('settings-input', 'schedule-name');
     scheduleNameInput.dataset.field = 'schedule-name';
     scheduleNameInput.type = 'text';
     scheduleNameInput.placeholder = 'Название графика (необязательно)';
