@@ -1043,7 +1043,7 @@ body {
 }
 
 .cell-vertical {
-    writing-mode: vertical-rl;
+    writing-mode: sideways-lr;
 }
 
 .sticky-col {
