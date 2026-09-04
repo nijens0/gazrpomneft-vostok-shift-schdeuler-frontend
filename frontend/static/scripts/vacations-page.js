@@ -1,5 +1,28 @@
 import {API_BASE_URL, API_ENDPOINTS} from "./api.js";
 
+class VacationData {
+    constructor(data) {
+        this.tab_number = data.tab_number;
+        this.full_name = data.full_name;
+        this.facility_name = data.facility_name;
+        this.department_name = data.department_name;
+        this.department_short_name = data.department_short_name;
+        this.role_name = data.role_name;
+        this.vacation_limits = new VacationLimits(data.vacation_limits);
+        this.vacations = data.vacations;
+    }
+}
+
+class VacationLimits {
+    constructor(data) {
+        this.tab_number = data.tab_number;
+        this.norm_days = data.norm_days;
+        this.extra_days = data.extra_days;
+        this.unused_days = data.unused_days;
+        this.total_days = data.total_days;
+    }
+}
+
 const FIRST_COLUMNS = [
     {key: 'tab_number', label: 'ТАБ.№', rowspan: '2', colspan: '1'},
     {key: 'facility_name', label: 'ПРОМЫСЕЛ', rowspan: '2', colspan: '1'},
