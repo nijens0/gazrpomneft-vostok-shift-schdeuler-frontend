@@ -135,14 +135,18 @@ const DOM = {
 };
 
 function showLoadingSpinner() {
-    DOM.btnGenerate.disabled = true;
-    DOM.btnGenerate.innerHTML = 'Генерация...';
+    if (DOM.btnGenerate) {
+        DOM.btnGenerate.disabled = true;
+        DOM.btnGenerate.innerHTML = 'Генерация...';
+    }
     DOM.loader.classList.remove('hidden');
 }
 
 function hideLoadingSpinner() {
-    DOM.btnGenerate.disabled = false;
-    DOM.btnGenerate.innerHTML = 'Новый график';
+    if (DOM.btnGenerate) {
+        DOM.btnGenerate.disabled = false;
+        DOM.btnGenerate.innerHTML = 'Новый график';
+    }
     DOM.loader.classList.add('hidden');
 }
 
@@ -1579,7 +1583,7 @@ async function handleNewScheduleClick() {
 
 function updateButtonState() {
     const isValid = DOM.allSelectors[0].checkValidity() && DOM.allSelectors[1].checkValidity();
-    DOM.btnGenerate.disabled = !isValid;
+    if (DOM.btnGenerate) DOM.btnGenerate.disabled = !isValid;
 }
 
 function attachSelectorListenersToGenerate() {
@@ -1612,6 +1616,18 @@ function attachSelectorListenersToRenderTable() {
 async function pollScheduleStatus(scheduleId) {
     polling: while (true) {
         const rawData = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getScheduleStatus(scheduleId)}`);
+
+        if (rawData.status === 404) {
+            // графика с таким id больше нет на бэке (например, удалили вручную) —
+            // забываем про него, как будто незавершённой генерации и не было
+            localStorage.removeItem(LAST_SCHEDULE_ID_KEY);
+            throw new Error(`График с id ${scheduleId} не найден (удалён на бэке)`);
+        }
+
+        if (!rawData.ok) {
+            throw new Error(`Не удалось получить статус графика: ${rawData.status}`);
+        }
+
         const response = await rawData.json();
 
         switch (response.status) {
@@ -1630,6 +1646,18 @@ async function checkGenerationStatus() {
     if (!lastScheduleId) return;
 
     const rawData = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getScheduleStatus(lastScheduleId)}`);
+
+    if (rawData.status === 404) {
+        // графика с таким id больше нет (удалили вручную) — считаем, что незавершённой генерации не было
+        localStorage.removeItem(LAST_SCHEDULE_ID_KEY);
+        return;
+    }
+
+    if (!rawData.ok) {
+        console.error(`Не удалось получить статус графика: ${rawData.status}`);
+        return;
+    }
+
     const response = await rawData.json();
 
     if (response.status !== ScheduleStatus.PROCESSING) {
