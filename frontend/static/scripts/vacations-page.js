@@ -31,32 +31,37 @@ const DOM = {
 
 const periods = 4;
 
-const FIRST_COLUMNS = [
+const FIRST_COLUMNS_EMPLOYEE = [
     {key: 'tab_number', label: 'ТАБ.№', rowspan: '2', colspan: '1'},
     {key: 'facility_name', label: 'ПРОМЫСЕЛ', rowspan: '2', colspan: '1'},
     {key: 'department_name', label: 'УЧАСТОК', rowspan: '2', colspan: '1'},
     {key: 'role_name', label: 'ДОЛЖНОСТЬ', rowspan: '2', colspan: '1'},
-    {key: 'full_name', label: 'ФИО', rowspan: '2', colspan: '1'},
-    {key: 'vacation', label: 'ОТПУСК', rowspan: '1', colspan: '4', align: 'center'}
+    {key: 'full_name', label: 'ФИО', rowspan: '2', colspan: '1'}
 ];
 
-const FIRST_COLUMNS_PERIODS =
-    {key: 'first_part', label: 'ПЕРИОД', rowspan: '1', colspan: '5', align: 'center'}
-
-const SECOND_COLUMNS_VACATIONS = [
+const FIRST_COLUMNS_VACATIONS = [
     {key: 'norm_days', label: 'НОРМА', rowspan: '1', colspan: '1', direction: 'horizontal', align: 'center'},
     {key: 'extra_days', label: 'ДОП.', rowspan: '1', colspan: '1', direction: 'horizontal', align: 'center'},
     {key: 'unused_days', label: 'ОСТАТКИ', rowspan: '1', colspan: '1', direction: 'horizontal', align: 'center'},
     {key: 'total_days', label: 'ИТОГО', rowspan: '1', colspan: '1', direction: 'horizontal', align: 'center'}
 ];
 
-const SECOND_COLUMNS_PERIODS = [
+const FIRST_COLUMNS_PERIODS = [
     {key: 'start_date', label: 'С', rowspan: '1', colspan: '1', direction: 'horizontal', align: 'center'},
     {key: 'calendar_days', label: 'ПО', rowspan: '1', colspan: '1', direction: 'horizontal', align: 'center'},
     {key: 'end_date', label: 'календарных дней', rowspan: '1', colspan: '1', direction: 'vertical', align: 'center'},
     {key: 'vacation_days', label: 'праздничных дней', rowspan: '1', colspan: '1', direction: 'vertical', align: 'center'},
     {key: 'is_14_days_period', label: '14-ти дневный период', rowspan: '1', colspan: '1', direction: 'vertical', align: 'center'}
 ];
+
+const SECOND_COLUMNS_VACATION = {key: 'vacation', label: 'ОТПУСК', rowspan: '1', colspan: '4', align: 'center'};
+
+const SECOND_COLUMNS_PERIODS = {key: 'first_part', label: 'ПЕРИОД', rowspan: '1', colspan: '5', align: 'center'}
+
+
+function isPrimitive(val) {
+    return val === null || (typeof val !== 'object' && typeof val !== 'function');
+}
 
 function createTableHead() {
     const thead = document.createElement('thead');
