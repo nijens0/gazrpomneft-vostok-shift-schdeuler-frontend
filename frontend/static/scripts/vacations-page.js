@@ -255,6 +255,36 @@ async function savePeriod(tr, periodIndex) {
     }
 }
 
+async function fetchEmployeeVacationData(tabNumber) {
+    const year = new Date().getFullYear();
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.searchVacation(year, tabNumber)}`);
+
+    if (!response.ok) {
+        throw new Error(`Не удалось обновить данные сотрудника: ${response.status}`);
+    }
+
+    const dataJson = await response.json();
+    const rawData = dataJson.data.find(item => String(item.tab_number) === String(tabNumber)) ?? dataJson.data[0];
+
+    return rawData ? new VacationData(rawData) : null;
+}
+
+async function refreshEmployeeRow(oldTr) {
+    const tabNumber = oldTr.dataset.tabNumber;
+
+    try {
+        const vacationData = await fetchEmployeeVacationData(tabNumber);
+        if (!vacationData) return;
+
+        const newTr = createTableRow(vacationData);
+        attachPeriodDateListeners(newTr);
+
+        oldTr.replaceWith(newTr);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 function flattenVacationData(vacationData) {
     const flat = {};
 
