@@ -69,49 +69,20 @@ function createTableHead() {
     const tr1 = document.createElement('tr');
     const tr2 = document.createElement('tr');
 
-    for (let i = 0; i < FIRST_COLUMNS.length; i++) {
-        const th = document.createElement('th');
-        th.textContent = FIRST_COLUMNS[i].label;
-        th.rowSpan = FIRST_COLUMNS[i].rowspan;
-        th.colSpan = FIRST_COLUMNS[i].colspan;
-        if (FIRST_COLUMNS[i].align) th.classList.add(`cell-${FIRST_COLUMNS[i].align}`);
-        tr1.append(th);
-    }
+    tr1.append(
+        ...createPartOfTableHead(EMPLOYEES_COLUMNS),
+        ...createPartOfTableHead(VACATION_COLUMN),
+        ...createPartOfTableHead(PERIOD_COLUMNS)
+    );
 
-    for (let i = 0; i < periods; i++) {
-        const th = document.createElement('th');
-        th.textContent = FIRST_COLUMNS_PERIODS.label + ` ${i + 1}`;
-        th.rowSpan = FIRST_COLUMNS_PERIODS.rowspan;
-        th.colSpan = FIRST_COLUMNS_PERIODS.colspan;
-        th.classList.add(`cell-${FIRST_COLUMNS_PERIODS.align}`);
-        tr1.append(th);
-    }
-
-    for (let i = 0; i < SECOND_COLUMNS_VACATIONS.length; i++) {
-        const th = document.createElement('th');
-        th.textContent = SECOND_COLUMNS_VACATIONS[i].label;
-        th.rowSpan = SECOND_COLUMNS_VACATIONS[i].rowspan;
-        th.colSpan = SECOND_COLUMNS_VACATIONS[i].colspan;
-        if (SECOND_COLUMNS_VACATIONS[i].direction === 'vertical') th.classList.add('cell-vertical');
-        if (SECOND_COLUMNS_VACATIONS[i].align) th.classList.add(`cell-${SECOND_COLUMNS_VACATIONS[i].align}`);
-        tr2.append(th);
-    }
-
-    for (let i = 0; i < periods; i++) {
-        for (let j = 0; j < SECOND_COLUMNS_PERIODS.length; j++) {
-            const th = document.createElement('th');
-            th.textContent = SECOND_COLUMNS_PERIODS[j].label;
-            th.rowSpan = SECOND_COLUMNS_PERIODS[j].rowspan;
-            th.colSpan = SECOND_COLUMNS_PERIODS[j].colspan;
-            th.classList.add(`cell-${SECOND_COLUMNS_PERIODS[j].align}`);
-            if (SECOND_COLUMNS_PERIODS[j].direction === 'vertical') th.classList.add('cell-vertical');
-            tr2.append(th);
-        }
-    }
+    tr2.append(
+        ...createPartOfTableHead(VACATION_COLUMNS),
+        ...createPartOfTableHead(PERIODS_COLUMNS)
+    );
 
     thead.append(tr1, tr2);
 
-    return thead
+    return thead;
 }
 
 function createHeaderCells(columns) {
