@@ -120,22 +120,18 @@ async function createTableBody() {
     const year = new Date().getFullYear();
     const tbody = document.createElement('tbody');
 
-    try {
-        const data = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getVacations(year)}`);
-        const dataJson = await data.json();
-        console.log(dataJson);
-        dataJson.data.map(data => new VacationData(data));
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getVacations(year)}`);
 
-
-        dataJson.data.forEach(vacationData => {
-            const tr = document.createElement('tr');
-
-
-        });
-    } catch (error) {
-        console.log(`Не удалось получить отпуска ${error}`);
-        throw new Error(error);
+    if (!response.ok) {
+        throw new Error(`Ошибка сервера ${response.status}`);
     }
+
+    const dataJson = await response.json();
+    const employeesVacationData = dataJson.data.map(data => new VacationData(data));
+    employeesVacationData.forEach(vacationData => {
+        const tr = createTableRow(vacationData);
+        tbody.append(tr);
+    });
 
     return tbody;
 }
