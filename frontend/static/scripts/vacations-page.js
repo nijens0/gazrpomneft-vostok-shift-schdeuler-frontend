@@ -49,9 +49,9 @@ const VACATION_COLUMNS = [
 
 const PERIODS_COLUMNS_BASE = [
     {key: 'start_date', label: 'С', rowspan: '1', colspan: '1', direction: '', align: 'center'},
-    {key: 'calendar_days', label: 'ПО', rowspan: '1', colspan: '1', direction: '', align: 'center'},
-    {key: 'end_date', label: 'календарных дней', rowspan: '1', colspan: '1', direction: 'vertical', align: 'center'},
-    {key: 'vacation_days', label: 'праздничных дней', rowspan: '1', colspan: '1', direction: 'vertical', align: 'center'},
+    {key: 'end_date', label: 'ПО', rowspan: '1', colspan: '1', direction: '', align: 'center'},
+    {key: 'calendar_days', label: 'календарных дней', rowspan: '1', colspan: '1', direction: 'vertical', align: 'center'},
+    {key: 'holiday_days', label: 'праздничных дней', rowspan: '1', colspan: '1', direction: 'vertical', align: 'center'},
     {key: 'is_14_days_period', label: '14-ти дневный период', rowspan: '1', colspan: '1', direction: 'vertical', align: 'center'}
 ];
 const PERIODS_COLUMNS = [];
