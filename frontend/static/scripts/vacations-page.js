@@ -82,14 +82,14 @@ function createTableHead() {
     const tr2 = document.createElement('tr');
 
     tr1.append(
-        ...createPartOfTableHead(EMPLOYEES_COLUMNS),
-        ...createPartOfTableHead(VACATION_COLUMN),
-        ...createPartOfTableHead(PERIOD_COLUMNS)
+        ...createHeaderCells(EMPLOYEES_COLUMNS),
+        ...createHeaderCells(VACATION_COLUMN),
+        ...createHeaderCells(PERIOD_COLUMNS)
     );
 
     tr2.append(
-        ...createPartOfTableHead(VACATION_COLUMNS),
-        ...createPartOfTableHead(PERIODS_COLUMNS)
+        ...createHeaderCells(VACATION_COLUMNS),
+        ...createHeaderCells(PERIODS_COLUMNS)
     );
 
     thead.append(tr1, tr2);
