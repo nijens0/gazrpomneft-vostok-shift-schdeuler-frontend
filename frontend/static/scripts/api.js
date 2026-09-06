@@ -10,6 +10,7 @@ export const API_ENDPOINTS = {
     getSchedule: (id, month) => `/schedules/${id}?month=${month}`,
     getSchedules: "/schedules",
     getScheduleStatus: (id) => `/schedules/status/${id}`,
+    exportSchedule: (id) => `/schedules/${id}/export/excel`,
     getFacilities: "/facilities",
     getDepartments: (facilityId) => `/facilities/${facilityId}/departments`,
     getVacations: (year) => `/vacations?year=${year}`,
