@@ -303,7 +303,54 @@ function renderTableHead(month, theadEl) {
     theadEl.append(tr1, tr2);
 }
 
+async function exportSchedule(scheduleId) {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.exportSchedule(scheduleId)}`);
 
+    if (!response.ok) {
+        throw new Error(`Не удалось экспортировать график: ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    const filename = getFilenameFromContentDisposition(response.headers.get('Content-Disposition'))
+        ?? `schedule_${scheduleId}.xlsx`;
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+
+    document.body.append(link);
+    link.click();
+    link.remove();
+
+    URL.revokeObjectURL(url);
+}
+
+function getFilenameFromContentDisposition(header) {
+    if (!header) return null;
+    const match = header.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
+function attachExportScheduleListener() {
+    const btnExport = DOM.btnExport;
+
+    btnExport.addEventListener('click', async () => {
+        const scheduleId = DOM.allSelectors[0].value;
+
+        if (!scheduleId) {
+            alert('Сначала выберите график для экспорта');
+            return;
+        }
+
+        try {
+            await exportSchedule(scheduleId);
+        } catch (error) {
+            console.error(error);
+            alert('Не удалось экспортировать график. Проверьте соединение с сервером.');
+        }
+    });
+}
 async function setGenerateScheduleSelectors() {
     const selectorsContainer = DOM.selectorsContainer;
 
@@ -470,7 +517,8 @@ function setChooseScheduleButtons() {
             Новый график
         </button>`;
 
-    DOM.btnNewSchedule.addEventListener('click', handleNewScheduleClick)
+    DOM.btnNewSchedule.addEventListener('click', handleNewScheduleClick);
+    attachExportScheduleListener();
 }
 
 async function setGenerateScheduleButtons() {
