@@ -93,20 +93,28 @@ async function getUsers() {
 function getTableRow(user) {
     const row = document.createElement('tr');
 
-    for (let i = 0; i < columns.length - 1; i++) {
+    function createCell(colIndex, value) {
+        const col = columns[colIndex];
         const td = document.createElement('td');
-        const key = columns[i].key;
 
-        td.dataset.key = key;
+        td.dataset.key = col.key;
         td.classList.add('editable');
-        if (i === 0) td.classList.add('sticky-col');
-        if (columns[i].align) td.classList.add(`cell-${columns[i].align}`);
-        if (columns[i].type) td.classList.add(`cell-${columns[i].type}`);
-        if (columns[i].attributes) td.dataset.attributes = columns[i].attributes;
 
-        td.textContent = user[key];
+        if (colIndex === 0) td.classList.add('sticky-col');
+        if (col.align) td.classList.add(`cell-${col.align}`);
+        if (col.type) td.classList.add(`cell-${col.type}`);
+        if (col.attributes) td.dataset.attributes = col.attributes;
 
-        row.appendChild(td);
+        td.textContent = typeof value === 'boolean' ? (value ? '1' : '0') : (value ?? '');
+        return td;
+    }
+
+    for (let i = 0; i < columns.length - 5; i++) {
+        row.appendChild(createCell(i, user[columns[i].key]));
+    }
+
+    for (let i = 12; i < 16; i++) {
+        row.appendChild(createCell(i, user.attributes?.[columns[i].key]));
     }
 
 

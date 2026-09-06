@@ -16,6 +16,7 @@ export class Employee {
         this.senior = data.senior ?? ``;
         this.can_replace_boss = data.can_replace_boss ?? ``;
         this.can_replace_senior = data.can_replace_senior ?? ``;
+        this.attributes = data.attributes;
         this.tmc = data.tmc ?? ``;
     }
 
