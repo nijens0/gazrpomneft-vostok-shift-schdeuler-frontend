@@ -140,8 +140,7 @@ async function createTableBody() {
     return tbody;
 }
 
-function createTableRow(data) {
-    const vacationData = new VacationData(data);
+function createTableRow(vacationData) {
     const flatRow = flattenVacationData(vacationData);
     const tr = document.createElement('tr');
 
