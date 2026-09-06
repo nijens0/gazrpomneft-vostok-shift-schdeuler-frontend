@@ -3,11 +3,12 @@ import {API_BASE_URL, API_ENDPOINTS} from "./api.js";
 class VacationData {
     constructor(data) {
         this.tab_number = data.tab_number;
-        this.full_name = data.full_name;
         this.facility_name = data.facility_name;
+        this.facility_short_name = data.facility_short_name;
         this.department_name = data.department_name;
         this.department_short_name = data.department_short_name;
         this.role_name = data.role_name;
+        this.full_name = data.full_name;
         this.vacation_limits = new VacationLimits(data.vacation_limits);
         this.vacations = data.vacations;
     }
