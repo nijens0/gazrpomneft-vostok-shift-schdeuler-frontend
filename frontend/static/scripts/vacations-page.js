@@ -27,6 +27,9 @@ class VacationLimits {
 const DOM = {
     getPage() {
         return document.querySelector('.page');
+    },
+    btnExport() {
+        return document.querySelector('.export');
     }
 }
 
@@ -250,6 +253,49 @@ async function savePeriod(tr, periodIndex) {
     }
 }
 
+async function exportVacation(defaultFilename = 'Отпуска.xlsx') {
+    try {
+        const year = new Date().getFullYear();
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.exportVacations(year)}`);
+
+        if (!response.ok) throw new Error('Ошибка при экспорте файла');
+
+        const blob = await response.blob();
+
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = defaultFilename;
+        document.body.appendChild(link);
+
+        link.click();
+
+        link.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+
+    } catch (error) {
+        console.error('Сбой экспорта:', error);
+    }
+}
+
+function attachExportVacationListener() {
+    const btnExport = DOM.btnExport();
+
+    if (!btnExport) {
+        console.warn('Кнопка экспорта (DOM.btnExport) не найдена на странице');
+        return;
+    }
+
+    btnExport.addEventListener('click', async () => {
+        try {
+            await exportVacation();
+        } catch (error) {
+            console.error(error);
+            alert('Не удалось экспортировать график. Проверьте соединение с сервером.');
+        }
+    });
+}
+
 async function fetchEmployeeVacationData(tabNumber) {
     const year = new Date().getFullYear();
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.searchVacation(year, tabNumber)}`);
@@ -359,4 +405,6 @@ async function initTableUI() {
 
 export async function init() {
     await initTableUI();
+
+    attachExportVacationListener();
 }
