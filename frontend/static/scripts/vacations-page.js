@@ -30,6 +30,8 @@ const DOM = {
     }
 }
 
+const VACATION_SAVE_DEBOUNCE_MS = 600;
+
 const PERIODS = 4;
 
 const EMPLOYEES_COLUMNS = [
