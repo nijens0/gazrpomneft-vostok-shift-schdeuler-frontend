@@ -571,7 +571,7 @@ function getMemoHTML() {
         </div>
         <div>
             <span class="badge badge-mv">МВ</span>
-            <span>Мнимая вахта</span>
+            <span>Межвахтовый отдых</span>
         </div>
         <div>
             <span class="badge badge-ot">ОТ</span>
