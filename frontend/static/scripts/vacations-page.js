@@ -157,7 +157,10 @@ function flattenVacationData(vacationData) {
         if (isPrimitive(value)) flat[key] = value;
     }
 
-    Object.assign(flat, vacationData.vacation_limits); // norm_days, extra_days, unused_days, total_days
+    flat.facility_name = vacationData.facility_short_name || vacationData.facility_name;
+    flat.department_name = vacationData.department_short_name || vacationData.department_name;
+
+    Object.assign(flat, vacationData.vacation_limits);
 
     (vacationData.vacations ?? []).forEach((period, index) => {
         const suffix = index + 1;
