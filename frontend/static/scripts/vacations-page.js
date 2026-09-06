@@ -139,11 +139,26 @@ async function createTableBody() {
 function createTableRow(vacationData) {
     const flatRow = flattenVacationData(vacationData);
     const tr = document.createElement('tr');
+    tr.dataset.tabNumber = vacationData.tab_number;
 
     ROW_COLUMNS.forEach(column => {
         const td = document.createElement('td');
         if (column.align) td.classList.add(`cell-${column.align}`);
-        td.textContent = flatRow[column.key] ?? '';
+
+        const value = flatRow[column.key];
+
+        if (column.input === 'date') {
+            const periodIndex = getPeriodIndexFromColumnKey(column.key);
+            const input = document.createElement('input');
+            input.type = 'date';
+            input.value = value ?? '';
+            input.dataset.field = column.key;
+            if (periodIndex) input.dataset.vacationId = flatRow[`vacation_id_${periodIndex}`] ?? '';
+            td.append(input);
+        } else {
+            td.textContent = value ?? '';
+        }
+
         tr.append(td);
     });
 
