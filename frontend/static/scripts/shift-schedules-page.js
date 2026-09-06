@@ -38,8 +38,9 @@ const shiftColors = {
 };
 
 const FIRST_COLUMNS = [
-    {key: 'employee_name', label: 'ФИО', rowspan: 2},
+    {key: 'employee_name', label: 'ФИО', rowspan: 2, sticky: "1"},
     {key: 'role', label: 'ДОЛЖНОСТЬ', rowspan: 2},
+    {key: 'rank', label: 'РАЗРЯД', rowspan: 2},
     {key: 'tab_number', label: 'ТАБ. №', rowspan: 2},
     {key: 'work_method', label: 'МЕТОД <br>ВАХТЫ', rowspan: 2},
     {key: 'schedule', label: 'ГРАФИК ВЫХОДА НА РАБОТУ ПО ЧИСЛАМ МЕСЯЦА', colspan: 'month'},
@@ -190,7 +191,7 @@ function renderTable(monthlyScheduleInfo, month) {
 
     for (const [roleName, employees] of Object.entries(monthlyScheduleInfo.roles)) {
         employees.forEach(employee => {
-            const rows = renderEmployeeRows(employee, roleName);
+            const rows = renderEmployeeRows(employee, roleName, month);
             tbody.append(...rows);
         });
     }
@@ -208,12 +209,12 @@ function renderTable(monthlyScheduleInfo, month) {
     return tableContainer;
 }
 
-function buildShiftCells(employee) {
+function buildShiftCells(employee, month) {
     let symbols = '';
     let dayHours = '';
     let nightHours = '';
 
-    for (let i = 0; i <= 30; i++) {
+    for (let i = 0; i <= month.days - 1; i++) {
         const shiftVal = employee.row_1_shift[i] || '';
         const bgColor = shiftColors[shiftVal] || 'transparent';
 
@@ -241,12 +242,12 @@ function renderTableContainer() {
     return tableContainer;
 }
 
-function renderEmployeeRows(employee, roleName) {
+function renderEmployeeRows(employee, roleName, month) {
     const row1 = document.createElement('tr');
     const row2 = document.createElement('tr');
     const row3 = document.createElement('tr');
 
-    const {symbols, dayHours, nightHours} = buildShiftCells(employee);
+    const {symbols, dayHours, nightHours} = buildShiftCells(employee, month);
 
     row1.innerHTML = `
         <td rowspan="3" class="sticky-col">${employee.employee_name}</td>
@@ -273,6 +274,7 @@ function renderTableHead(month, theadEl) {
 
     FIRST_COLUMNS.forEach(column => {
         const th = document.createElement('th');
+        if (column.sticky) th.classList.add('sticky-col');
         if (column.rowspan) th.rowSpan = column.rowspan;
         if (column.colspan) th.colSpan = column.colspan === 'month' ? month.days : column.colspan;
 
