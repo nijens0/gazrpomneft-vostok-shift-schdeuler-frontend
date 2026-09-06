@@ -13,4 +13,6 @@ export const API_ENDPOINTS = {
     getFacilities: "/facilities",
     getDepartments: (facilityId) => `/facilities/${facilityId}/departments`,
     getVacations: (year) => `/vacations?year=${year}`,
+    addVacation: "/vacations",
+    searchVacation: (year, query) => `/vacations?year=${year}&tab_number=${query}`,
 }
