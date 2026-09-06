@@ -4,6 +4,8 @@ import {API_BASE_URL, API_ENDPOINTS} from "./api.js";
 const LAST_SCHEDULE_ID_KEY = 'last-schedule-id';
 const DRAFT_STATE_KEY = 'schedule-generation-draft';
 const DRAFT_SAVE_DEBOUNCE_MS = 400;
+const LAST_MODE_KEY = 'last-schedule-mode'; // 'generate' | 'choose' — какой экран был открыт последним
+const LAST_VIEWED_SCHEDULE_KEY = 'last-viewed-schedule'; // {scheduleId, month} — что смотрели последним в режиме "выбор графика"
 
 const ScheduleStatus = {
     PROCESSING: "processing",
@@ -90,9 +92,6 @@ class Employee {
 }
 
 const DOM = {
-    get loader() {
-        return document.getElementById('loader');
-    },
     get overlay() {
         return document.getElementById('loading-overlay');
     },
@@ -133,22 +132,6 @@ const DOM = {
         return document.querySelector('.content')
     }
 };
-
-function showLoadingSpinner() {
-    if (DOM.btnGenerate) {
-        DOM.btnGenerate.disabled = true;
-        DOM.btnGenerate.innerHTML = 'Генерация...';
-    }
-    DOM.loader.classList.remove('hidden');
-}
-
-function hideLoadingSpinner() {
-    if (DOM.btnGenerate) {
-        DOM.btnGenerate.disabled = false;
-        DOM.btnGenerate.innerHTML = 'Новый график';
-    }
-    DOM.loader.classList.add('hidden');
-}
 
 function blockUI() {
     DOM.overlay.classList.remove('hidden');
@@ -361,13 +344,10 @@ async function setGenerateScheduleSelectors() {
         selectorsContainer.innerHTML = '';
         selectorsContainer.append(facilitiesSelector, departmentsSelector);
 
-        facilitiesSelector.addEventListener('change', async () => {
-            facilitiesSelector.title = facilitiesSelector.selectedOptions[0].text;
-
-            const facilityId = facilitiesSelector.value;
+        /** Подгружает участки выбранного промысла. Общая логика для смены и восстановления черновика. */
+        const loadDepartments = async (facilityId) => {
             const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getDepartments(facilityId)}`);
             const facilityDepartments = await response.json();
-            console.log(facilityDepartments);
 
             departmentsSelector.disabled = false;
 
@@ -382,12 +362,35 @@ async function setGenerateScheduleSelectors() {
                     departmentsSelector.add(new Option(label, id))
                 });
             }
+        };
+
+        facilitiesSelector.addEventListener('change', async () => {
+            facilitiesSelector.title = facilitiesSelector.selectedOptions[0].text;
+            await loadDepartments(facilitiesSelector.value);
+            debouncedSaveDraftState();
         });
 
         departmentsSelector.addEventListener('change', () => {
             departmentsSelector.title = departmentsSelector.selectedOptions[0].text;
+            debouncedSaveDraftState();
         })
 
+        // восстанавливаем сохранённый выбор промысла/участка из черновика
+        const draft = loadDraftState();
+        const savedFacilityId = draft?.selectors?.facilityId;
+        const savedDepartmentId = draft?.selectors?.departmentId;
+
+        if (savedFacilityId && facilitiesSelector.querySelector(`option[value="${savedFacilityId}"]`)) {
+            facilitiesSelector.value = savedFacilityId;
+            facilitiesSelector.title = facilitiesSelector.selectedOptions[0].text;
+
+            await loadDepartments(savedFacilityId);
+
+            if (savedDepartmentId && departmentsSelector.querySelector(`option[value="${savedDepartmentId}"]`)) {
+                departmentsSelector.value = savedDepartmentId;
+                departmentsSelector.title = departmentsSelector.selectedOptions[0].text;
+            }
+        }
     } catch (error) {
         console.error('Не удалось загрузить промыслы:', error);
     }
@@ -427,6 +430,16 @@ async function setChooseScheduleSelectors() {
 
         selectorsContainer.innerHTML = '';
         selectorsContainer.append(schedulesSelector, monthSelector);
+
+        // восстанавливаем последний просмотренный график/месяц, если он всё ещё существует
+        const lastViewed = getLastViewedSchedule();
+        if (lastViewed && schedulesSelector.querySelector(`option[value="${lastViewed.scheduleId}"]`)) {
+            schedulesSelector.value = lastViewed.scheduleId;
+            if (lastViewed.month && monthSelector.querySelector(`option[value="${lastViewed.month}"]`)) {
+                monthSelector.value = String(lastViewed.month);
+            }
+        }
+
         await attachSelectorListenersToRenderTable()
     } catch (error) {
         console.error('Не удалось загрузить графики:', error);
@@ -492,25 +505,23 @@ async function createAndLoadSchedule() {
         return;
     }
 
-    showLoadingSpinner();
-
     try {
         const requestBody = buildGenerationRequestBody();
-        const scheduleResponse = await generateSchedule(requestBody);
+        const scheduleResponse = await generateSchedule(requestBody); // блокирует UI внутри себя перед запросом
+
         localStorage.setItem(LAST_SCHEDULE_ID_KEY, scheduleResponse.schedule_id);
 
         await pollScheduleStatus(scheduleResponse.schedule_id);
 
-        const data = await getTableData(scheduleResponse.schedule_id, 1);
-
-        renderTable(data, MONTHS[0]);
+        // рендерить таблицу тут не нужно — changeUItoChooseSchedule() ниже сам её отрисует,
+        // а этот график откроется по умолчанию как последний просмотренный
+        setLastViewedSchedule(scheduleResponse.schedule_id, 1);
         localStorage.removeItem(LAST_SCHEDULE_ID_KEY);
         clearDraftState(); // график успешно создан — черновик больше не нужен
     } catch (error) {
         console.error(error);
         alert("Не удалось сгенерировать график. Проверьте соединение с сервером.");
     } finally {
-        hideLoadingSpinner();
         unblockUI();
         await changeUItoChooseSchedule();
     }
@@ -1295,6 +1306,15 @@ function collectAllGroupsData() {
     return Array.from(groupEls).map(collectGroupData);
 }
 
+/** Собирает выбранный промысел/участок (селекторы на экране генерации). */
+function collectSelectorsState() {
+    const selectors = DOM.allSelectors;
+    return {
+        facilityId: selectors[0]?.value ?? '',
+        departmentId: selectors[1]?.value ?? '',
+    };
+}
+
 /**
  * Собирает ПОЛНОЕ состояние UI генерации в одном объекте — используется
  * и для черновика в localStorage, и как основа для тела запроса.
@@ -1304,6 +1324,7 @@ function collectFullUIState() {
         settings: collectGlobalSettings(),
         generalRoles: collectGeneralRolesData(),
         groups: collectAllGroupsData(),
+        selectors: collectSelectorsState(),
     };
 }
 
@@ -1500,6 +1521,37 @@ function clearDraftState() {
     localStorage.removeItem(DRAFT_STATE_KEY);
 }
 
+// ===================== Последний режим и последний просмотренный график =====================
+
+function saveLastMode(mode) {
+    localStorage.setItem(LAST_MODE_KEY, mode);
+}
+
+function getLastMode() {
+    return localStorage.getItem(LAST_MODE_KEY);
+}
+
+function setLastViewedSchedule(scheduleId, month) {
+    try {
+        localStorage.setItem(LAST_VIEWED_SCHEDULE_KEY, JSON.stringify({
+            scheduleId: String(scheduleId),
+            month: Number(month),
+        }));
+    } catch (error) {
+        console.error('Не удалось сохранить последний просмотренный график:', error);
+    }
+}
+
+function getLastViewedSchedule() {
+    try {
+        const raw = localStorage.getItem(LAST_VIEWED_SCHEDULE_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+        console.error('Не удалось прочитать последний просмотренный график:', error);
+        return null;
+    }
+}
+
 /** Вешает один делегированный листенер на весь блок генерации для автосохранения черновика. */
 function attachDraftAutoSave(rootEl) {
     rootEl.addEventListener('input', debouncedSaveDraftState);
@@ -1534,6 +1586,8 @@ async function changeUItoChooseSchedule() {
 
         document.querySelector('.memo-container')?.remove(); // не плодим памятки при повторном входе
         DOM.tableContainer.insertAdjacentHTML('afterend', getMemoHTML());
+
+        saveLastMode('choose');
     } catch (error) {
         console.log(`Не удалось сменить режим: ${error}`);
     }
@@ -1568,6 +1622,8 @@ async function changeUItoGenerateSchedule() {
         attachDraftAutoSave(content);
         attachLiveValidationClear(content);
         updateGenerateButtonState();
+
+        saveLastMode('generate');
     } catch (error) {
         console.log(`Не удалось сменить режим: ${error}`);
     }
@@ -1601,6 +1657,7 @@ async function updateTableData() {
         const tableData = await getTableData(selectors[0].value, selectors[1].value);
         const month = MONTHS[Number(selectors[1].value) - 1];
         renderTable(tableData, month);
+        setLastViewedSchedule(selectors[0].value, selectors[1].value);
     } catch (error) {
         console.error(error.message);
     }
@@ -1634,7 +1691,6 @@ async function pollScheduleStatus(scheduleId) {
             case ScheduleStatus.ERROR:
                 throw new Error(`Ошибка генерации графика: ${response.message}`);
             case ScheduleStatus.OPTIMAL:
-                unblockUI();
                 break polling;
         }
         await new Promise(resolve => setTimeout(resolve, 10000));
@@ -1665,18 +1721,20 @@ async function checkGenerationStatus() {
         return;
     }
 
-    blockUI();
-    showLoadingSpinner();
-
+    // blockUI() и всё, что может кинуть исключение, теперь внутри одного try/finally:
+    // раньше blockUI() стоял до try, и если что-то падало до входа в try (например,
+    // упавший showLoadingSpinner() на экране без кнопки .generate), unblockUI() из
+    // finally попросту не вызывался, и оверлей зависал до перезагрузки страницы
     try {
+        blockUI();
         await pollScheduleStatus(lastScheduleId);
         const data = await getTableData(lastScheduleId, 1);
         renderTable(data, MONTHS[0]);
+        setLastViewedSchedule(lastScheduleId, 1);
         localStorage.removeItem(LAST_SCHEDULE_ID_KEY);
     } catch (error) {
         console.error("Ошибка при восстановлении генерации:", error);
     } finally {
-        hideLoadingSpinner();
         unblockUI();
         await changeUItoChooseSchedule();
     }
@@ -1686,7 +1744,16 @@ async function initScheduleUI() {
     const rawDataSchedules = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getSchedules}`);
     const schedules = await rawDataSchedules.json();
 
-    if (schedules.length === 0) await changeUItoGenerateSchedule();
+    // если есть незавершённый черновик генерации — возвращаем пользователя туда,
+    // а не на список графиков, иначе введённые настройки выглядят "пропавшими"
+    // при возврате с другой страницы (например, со страницы сотрудников)
+    const hasDraft = loadDraftState() !== null;
+
+    // если графиков вообще нет — генерация единственный вариант;
+    // иначе ориентируемся на то, в каком режиме пользователь был в последний раз
+    const wantsGenerateMode = hasDraft || schedules.length === 0 || getLastMode() === 'generate';
+
+    if (wantsGenerateMode) await changeUItoGenerateSchedule();
     else await changeUItoChooseSchedule();
 }
 
