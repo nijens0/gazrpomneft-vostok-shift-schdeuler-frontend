@@ -173,6 +173,11 @@ function flattenVacationData(vacationData) {
     return flat;
 }
 
+function getPeriodIndexFromColumnKey(key) {
+    const match = key.match(/_(\d+)$/);
+    return match ? Number(match[1]) : null;
+}
+
 function sortVacationPeriods(vacations) {
     return [...(vacations ?? [])].sort((a, b) => {
         if (!a.start_date) return 1;
