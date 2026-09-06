@@ -132,6 +132,7 @@ async function createTableBody() {
     const employeesVacationData = dataJson.data.map(data => new VacationData(data));
     employeesVacationData.forEach(vacationData => {
         const tr = createTableRow(vacationData);
+        attachPeriodDateListeners(tr);
         tbody.append(tr);
     });
 
