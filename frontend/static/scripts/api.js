@@ -15,6 +15,7 @@ export const API_ENDPOINTS = {
     getDepartments: (facilityId) => `/facilities/${facilityId}/departments`,
     getVacations: (year) => `/vacations?year=${year}`,
     addVacation: "/vacations",
+    exportVacations: "/vacations/export/excel",
     searchVacation: (year, query) => `/vacations?year=${year}&tab_number=${query}`,
     updateVacation: (id) => `/vacations/${id}`,
     deleteVacation: (id) => `/vacations/${id}`
