@@ -140,6 +140,40 @@ async function createTableBody() {
     return tbody;
 }
 
+function createTableRow(data) {
+    const vacationData = new VacationData(data);
+    const flatRow = flattenVacationData(vacationData);
+    const tr = document.createElement('tr');
+
+    ROW_COLUMNS.forEach(column => {
+        const td = document.createElement('td');
+        if (column.align) td.classList.add(`cell-${column.align}`);
+        td.textContent = flatRow[column.key] ?? '';
+        tr.append(td);
+    });
+
+    return tr;
+}
+
+function flattenVacationData(vacationData) {
+    const flat = {};
+
+    for (const [key, value] of Object.entries(vacationData)) {
+        if (isPrimitive(value)) flat[key] = value;
+    }
+
+    Object.assign(flat, vacationData.vacation_limits); // norm_days, extra_days, unused_days, total_days
+
+    (vacationData.vacations ?? []).forEach((period, index) => {
+        const suffix = index + 1;
+        for (const [key, value] of Object.entries(period)) {
+            flat[`${key}_${suffix}`] = value;
+        }
+    });
+
+    return flat;
+}
+
 function createTableContainer() {
     const div = document.createElement('div');
     div.classList.add('table-container');
