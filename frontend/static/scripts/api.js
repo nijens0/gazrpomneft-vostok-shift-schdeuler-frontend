@@ -15,4 +15,6 @@ export const API_ENDPOINTS = {
     getVacations: (year) => `/vacations?year=${year}`,
     addVacation: "/vacations",
     searchVacation: (year, query) => `/vacations?year=${year}&tab_number=${query}`,
+    updateVacation: (id) => `/vacations/${id}`,
+    deleteVacation: (id) => `/vacations/${id}`
 }
