@@ -50,8 +50,8 @@ const VACATION_COLUMNS = [
 ];
 
 const PERIODS_COLUMNS_BASE = [
-    {key: 'start_date', label: 'С', rowspan: '1', colspan: '1', direction: '', align: 'center'},
-    {key: 'end_date', label: 'ПО', rowspan: '1', colspan: '1', direction: '', align: 'center'},
+    {key: 'start_date', label: 'С', rowspan: '1', colspan: '1', direction: '', align: 'center', input: 'date'},
+    {key: 'end_date', label: 'ПО', rowspan: '1', colspan: '1', direction: '', align: 'center', input: 'date'},
     {key: 'calendar_days', label: 'календарных дней', rowspan: '1', colspan: '1', direction: 'vertical', align: 'center'},
     {key: 'holiday_days', label: 'праздничных дней', rowspan: '1', colspan: '1', direction: 'vertical', align: 'center'},
     {key: 'is_14_days_period', label: '14-ти дневный период', rowspan: '1', colspan: '1', direction: 'vertical', align: 'center'}
@@ -67,9 +67,8 @@ const VACATION_COLUMN = [{key: 'vacation', label: 'ОТПУСК', rowspan: '1', 
 
 const period = {key: 'part', label: 'ПЕРИОД', rowspan: '1', colspan: '5', align: 'center'};
 const PERIOD_COLUMNS = [];
-
 for (let i = 0; i < PERIODS; i++) {
-    const newPeriod = {...period, key: `${period.key}_${i + 1}`,label: `${period.label} ${i + 1}`}
+    const newPeriod = {...period, key: `${period.key}_${i + 1}`, label: `${period.label} ${i + 1}`}
     PERIOD_COLUMNS.push(newPeriod);
 }
 
@@ -189,7 +188,7 @@ async function savePeriod(tr, periodIndex) {
     const start = startInput.value || null;
     const end = endInput.value || null;
     const vacationId = startInput.dataset.vacationId || endInput.dataset.vacationId || '';
-    
+
     if ((start && !end) || (!start && end)) {
         markDateInvalid(startInput, false);
         markDateInvalid(endInput, false);
@@ -208,8 +207,7 @@ async function savePeriod(tr, periodIndex) {
             });
             if (!response.ok) throw new Error(`Не удалось удалить отпуск: ${response.status}`);
 
-            startInput.dataset.vacationId = '';
-            endInput.dataset.vacationId = '';
+            await refreshEmployeeRow(tr);
         } catch (error) {
             console.error(error);
             alert('Не удалось удалить отпуск. Попробуйте ещё раз.');
@@ -243,12 +241,9 @@ async function savePeriod(tr, periodIndex) {
                 body: JSON.stringify(body),
             });
             if (!response.ok) throw new Error(`Не удалось добавить отпуск: ${response.status}`);
-
-            const created = await response.json();
-            const newId = created.vacation_id ?? created.id;
-            startInput.dataset.vacationId = newId;
-            endInput.dataset.vacationId = newId;
         }
+
+        await refreshEmployeeRow(tr);
     } catch (error) {
         console.error(error);
         alert('Не удалось сохранить отпуск. Проверьте соединение с сервером.');
