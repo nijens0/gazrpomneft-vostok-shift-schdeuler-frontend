@@ -167,6 +167,11 @@ function createTableRow(vacationData) {
     return tr;
 }
 
+function markDateInvalid(input, isInvalid) {
+    if (!input) return;
+    input.classList.toggle('field-invalid', isInvalid);
+}
+
 function flattenVacationData(vacationData) {
     const flat = {};
 
