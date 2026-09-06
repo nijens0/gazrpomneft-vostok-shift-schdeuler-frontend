@@ -172,6 +172,80 @@ function markDateInvalid(input, isInvalid) {
     input.classList.toggle('field-invalid', isInvalid);
 }
 
+async function savePeriod(tr, periodIndex) {
+    const startInput = tr.querySelector(`[data-field="start_date_${periodIndex}"]`);
+    const endInput = tr.querySelector(`[data-field="end_date_${periodIndex}"]`);
+    if (!startInput || !endInput) return;
+
+    const start = startInput.value || null;
+    const end = endInput.value || null;
+    const vacationId = startInput.dataset.vacationId || endInput.dataset.vacationId || '';
+    
+    if ((start && !end) || (!start && end)) {
+        markDateInvalid(startInput, false);
+        markDateInvalid(endInput, false);
+        return;
+    }
+
+    if (!start && !end) {
+        markDateInvalid(startInput, false);
+        markDateInvalid(endInput, false);
+
+        if (!vacationId) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.deleteVacation(vacationId)}`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) throw new Error(`Не удалось удалить отпуск: ${response.status}`);
+
+            startInput.dataset.vacationId = '';
+            endInput.dataset.vacationId = '';
+        } catch (error) {
+            console.error(error);
+            alert('Не удалось удалить отпуск. Попробуйте ещё раз.');
+        }
+        return;
+    }
+
+    if (start > end) {
+        markDateInvalid(startInput, true);
+        markDateInvalid(endInput, true);
+        return;
+    }
+
+    markDateInvalid(startInput, false);
+    markDateInvalid(endInput, false);
+
+    const body = {tab_number: tr.dataset.tabNumber, start_date: start, end_date: end};
+
+    try {
+        if (vacationId) {
+            const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.updateVacation(vacationId)}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body),
+            });
+            if (!response.ok) throw new Error(`Не удалось обновить отпуск: ${response.status}`);
+        } else {
+            const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.addVacation}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body),
+            });
+            if (!response.ok) throw new Error(`Не удалось добавить отпуск: ${response.status}`);
+
+            const created = await response.json();
+            const newId = created.vacation_id ?? created.id;
+            startInput.dataset.vacationId = newId;
+            endInput.dataset.vacationId = newId;
+        }
+    } catch (error) {
+        console.error(error);
+        alert('Не удалось сохранить отпуск. Проверьте соединение с сервером.');
+    }
+}
+
 function flattenVacationData(vacationData) {
     const flat = {};
 
