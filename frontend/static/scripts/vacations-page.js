@@ -71,6 +71,8 @@ for (let i = 0; i < PERIODS; i++) {
     PERIOD_COLUMNS.push(newPeriod);
 }
 
+const ROW_COLUMNS = [...EMPLOYEES_COLUMNS, ...VACATION_COLUMNS, ...PERIODS_COLUMNS];
+
 
 function isPrimitive(val) {
     return val === null || (typeof val !== 'object' && typeof val !== 'function');
