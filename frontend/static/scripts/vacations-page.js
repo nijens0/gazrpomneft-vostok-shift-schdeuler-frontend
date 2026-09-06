@@ -80,6 +80,14 @@ function isPrimitive(val) {
     return val === null || (typeof val !== 'object' && typeof val !== 'function');
 }
 
+function debounce(fn, delay) {
+    let timeoutId;
+    return (...args) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => fn(...args), delay);
+    };
+}
+
 function createTableHead() {
     const thead = document.createElement('thead');
 
