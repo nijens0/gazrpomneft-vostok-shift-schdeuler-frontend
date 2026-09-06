@@ -29,9 +29,9 @@ const DOM = {
     }
 }
 
-const periods = 4;
+const PERIODS = 4;
 
-const FIRST_COLUMNS_EMPLOYEE = [
+const EMPLOYEES_COLUMNS = [
     {key: 'tab_number', label: 'ТАБ.№', rowspan: '2', colspan: '1'},
     {key: 'facility_name', label: 'ПРОМЫСЕЛ', rowspan: '2', colspan: '1'},
     {key: 'department_name', label: 'УЧАСТОК', rowspan: '2', colspan: '1'},
@@ -39,24 +39,36 @@ const FIRST_COLUMNS_EMPLOYEE = [
     {key: 'full_name', label: 'ФИО', rowspan: '2', colspan: '1'}
 ];
 
-const FIRST_COLUMNS_VACATIONS = [
-    {key: 'norm_days', label: 'НОРМА', rowspan: '1', colspan: '1', direction: 'horizontal', align: 'center'},
-    {key: 'extra_days', label: 'ДОП.', rowspan: '1', colspan: '1', direction: 'horizontal', align: 'center'},
-    {key: 'unused_days', label: 'ОСТАТКИ', rowspan: '1', colspan: '1', direction: 'horizontal', align: 'center'},
-    {key: 'total_days', label: 'ИТОГО', rowspan: '1', colspan: '1', direction: 'horizontal', align: 'center'}
+const VACATION_COLUMNS = [
+    {key: 'norm_days', label: 'НОРМА', rowspan: '1', colspan: '1', direction: '', align: 'center'},
+    {key: 'extra_days', label: 'ДОП.', rowspan: '1', colspan: '1', direction: '', align: 'center'},
+    {key: 'unused_days', label: 'ОСТАТКИ', rowspan: '1', colspan: '1', direction: '', align: 'center'},
+    {key: 'total_days', label: 'ИТОГО', rowspan: '1', colspan: '1', direction: '', align: 'center'}
 ];
 
-const FIRST_COLUMNS_PERIODS = [
-    {key: 'start_date', label: 'С', rowspan: '1', colspan: '1', direction: 'horizontal', align: 'center'},
-    {key: 'calendar_days', label: 'ПО', rowspan: '1', colspan: '1', direction: 'horizontal', align: 'center'},
+const PERIODS_COLUMNS_BASE = [
+    {key: 'start_date', label: 'С', rowspan: '1', colspan: '1', direction: '', align: 'center'},
+    {key: 'calendar_days', label: 'ПО', rowspan: '1', colspan: '1', direction: '', align: 'center'},
     {key: 'end_date', label: 'календарных дней', rowspan: '1', colspan: '1', direction: 'vertical', align: 'center'},
     {key: 'vacation_days', label: 'праздничных дней', rowspan: '1', colspan: '1', direction: 'vertical', align: 'center'},
     {key: 'is_14_days_period', label: '14-ти дневный период', rowspan: '1', colspan: '1', direction: 'vertical', align: 'center'}
 ];
+const PERIODS_COLUMNS = [];
+for (let i = 0; i < PERIODS; i++) {
+    PERIODS_COLUMNS_BASE.forEach(column => {
+        PERIODS_COLUMNS.push({...column, key: `${column.key}_${i + 1}`});
+    });
+}
 
-const SECOND_COLUMNS_VACATION = {key: 'vacation', label: 'ОТПУСК', rowspan: '1', colspan: '4', align: 'center'};
+const VACATION_COLUMN = [{key: 'vacation', label: 'ОТПУСК', rowspan: '1', colspan: '4', align: 'center'}];
 
-const SECOND_COLUMNS_PERIODS = {key: 'first_part', label: 'ПЕРИОД', rowspan: '1', colspan: '5', align: 'center'}
+const period = {key: 'part', label: 'ПЕРИОД', rowspan: '1', colspan: '5', align: 'center'};
+const PERIOD_COLUMNS = [];
+
+for (let i = 0; i < PERIODS; i++) {
+    const newPeriod = {...period, key: `${period.key}_${i + 1}`,label: `${period.label} ${i + 1}`}
+    PERIOD_COLUMNS.push(newPeriod);
+}
 
 
 function isPrimitive(val) {
