@@ -54,10 +54,10 @@ const columns = [
     {key: 'rank', label: 'РАЗРЯД', align: 'center'},
     {key: 'personnel_subdivision', label: 'ПОДРАЗДЕЛ ПЕРСОНАЛА', align: 'center'},
     {key: 'activity', label: 'КОМПЕТЕНЦИИ', align: 'center'},
-    {key: 'can_work_night', label: 'НОЧЬ', align: 'center'},
-    {key: 'senior', label: 'СТ. ОПЕРАТОР', align: 'center'},
-    {key: 'can_replace_boss', label: 'ЗАМ. НАЧАЛЬНИКА СМЕНЫ', align: 'center'},
-    {key: 'can_replace_senior', label: 'ЗАМ. СТ. ОПЕРАТОРА', align: 'center'},
+    {key: 'can_work_night', label: 'НОЧЬ', align: 'center', attributes: '1'},
+    {key: 'senior', label: 'СТ. ОПЕРАТОР', align: 'center', attributes: '1'},
+    {key: 'can_replace_boss', label: 'ЗАМ. НАЧАЛЬНИКА СМЕНЫ', align: 'center', attributes: '1'},
+    {key: 'can_replace_senior', label: 'ЗАМ. СТ. ОПЕРАТОРА', align: 'center', attributes: '1'},
     {key: 'actions_with_employee', label: 'ДЕЙСТВИЯ С СОТРУДНИКОМ'},
 ];
 
@@ -102,6 +102,7 @@ function getTableRow(user) {
         if (i === 0) td.classList.add('sticky-col');
         if (columns[i].align) td.classList.add(`cell-${columns[i].align}`);
         if (columns[i].type) td.classList.add(`cell-${columns[i].type}`);
+        if (columns[i].attributes) td.dataset.attributes = columns[i].attributes;
 
         td.textContent = user[key];
 
@@ -244,13 +245,19 @@ function editTableListeners(e, backup) {
         cells.forEach(td => {
             const input = td.querySelector('input');
             const key = td.dataset.key;
+            const attribute = td.dataset.attributes;
             const value = input.value.trim();
 
             if (key === "tab_number") tabNumber = value;
-            if (input.placeholder !== value) updateEmployee[key] = value;
+            if (input.placeholder !== value && !attribute) updateEmployee[key] = value;
+            if (attribute && value !== "") {
+                updateEmployee[key] = value === "1" ? true : value === "0" ? false: value;
+            }
 
             td.textContent = value;
         });
+        console.log(`${API_BASE_URL}${API_ENDPOINTS.updateEmployee(tabNumber)}`)
+        console.log(updateEmployee);
 
         const updateEmployeeJSON = JSON.stringify(updateEmployee);
         fetch(`${API_BASE_URL}${API_ENDPOINTS.updateEmployee(tabNumber)}`, {
