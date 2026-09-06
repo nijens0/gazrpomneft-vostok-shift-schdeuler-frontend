@@ -282,6 +282,19 @@ function sortVacationPeriods(vacations) {
     });
 }
 
+function attachPeriodDateListeners(tr) {
+    for (let periodIndex = 1; periodIndex <= PERIODS; periodIndex++) {
+        const startInput = tr.querySelector(`[data-field="start_date_${periodIndex}"]`);
+        const endInput = tr.querySelector(`[data-field="end_date_${periodIndex}"]`);
+        if (!startInput || !endInput) continue;
+
+        const debouncedSave = debounce(() => savePeriod(tr, periodIndex), VACATION_SAVE_DEBOUNCE_MS);
+
+        startInput.addEventListener('input', debouncedSave);
+        endInput.addEventListener('input', debouncedSave);
+    }
+}
+
 function createTableContainer() {
     const div = document.createElement('div');
     div.classList.add('table-container');
