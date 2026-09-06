@@ -162,7 +162,8 @@ function flattenVacationData(vacationData) {
 
     Object.assign(flat, vacationData.vacation_limits);
 
-    (vacationData.vacations ?? []).forEach((period, index) => {
+    const sortedVacations = sortVacationPeriods(vacationData.vacations);
+    sortedVacations.forEach((period, index) => {
         const suffix = index + 1;
         for (const [key, value] of Object.entries(period)) {
             flat[`${key}_${suffix}`] = value;
