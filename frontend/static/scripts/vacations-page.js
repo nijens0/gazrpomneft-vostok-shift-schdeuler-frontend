@@ -114,6 +114,22 @@ function createTableHead() {
     return thead
 }
 
+function createHeaderCells(columns) {
+    const ths = [];
+
+    columns.forEach(column => {
+        const th = document.createElement('th');
+        th.textContent = column.label;
+        if (column.rowspan) th.rowSpan = column.rowspan;
+        if (column.colspan) th.colSpan = column.colspan;
+        if (column.direction) th.classList.add(`cell-${column.direction}`)
+        if (column.align) th.classList.add(`cell-${column.align}`)
+        ths.push(th);
+    });
+
+    return ths;
+}
+
 async function createTableBody() {
     const year = new Date().getFullYear();
     const tbody = document.createElement('tbody');
