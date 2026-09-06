@@ -172,6 +172,14 @@ function flattenVacationData(vacationData) {
     return flat;
 }
 
+function sortVacationPeriods(vacations) {
+    return [...(vacations ?? [])].sort((a, b) => {
+        if (!a.start_date) return 1;
+        if (!b.start_date) return -1;
+        return a.start_date.localeCompare(b.start_date);
+    });
+}
+
 function createTableContainer() {
     const div = document.createElement('div');
     div.classList.add('table-container');
