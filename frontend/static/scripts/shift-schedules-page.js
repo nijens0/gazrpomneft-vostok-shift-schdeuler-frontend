@@ -83,6 +83,7 @@ class Employee {
         this.row_1_shift = data.row_1_shift;
         this.row_2_day_hours = data.row_2_day_hours;
         this.row_3_night_hours = data.row_3_night_hours;
+        this.row_4_status = data.row_4_status;
         this.tab_number = data.tab_number;
         this.total_hours = data.total_hours;
         this.travel_days = data.travel_days;
@@ -213,6 +214,7 @@ function buildShiftCells(employee, month) {
     let symbols = '';
     let dayHours = '';
     let nightHours = '';
+    let status = '';
 
     for (let i = 0; i <= month.days - 1; i++) {
         const shiftVal = employee.row_1_shift[i] || '';
@@ -221,9 +223,10 @@ function buildShiftCells(employee, month) {
         symbols += `<td style="background-color: ${bgColor}">${employee.row_1_shift[i] ?? ""}</td>`;
         dayHours += `<td class="cell-center">${employee.row_2_day_hours[i] ?? ""}</td>`;
         nightHours += `<td class="cell-center">${employee.row_3_night_hours[i] ?? ""}</td>`;
+        status += `<td class="cell-center">${employee.row_4_status[i] || '⠀'}</td>`;
     }
 
-    return {symbols, dayHours, nightHours};
+    return {symbols, dayHours, nightHours, status};
 }
 
 function renderTableContainer() {
@@ -246,26 +249,28 @@ function renderEmployeeRows(employee, roleName, month) {
     const row1 = document.createElement('tr');
     const row2 = document.createElement('tr');
     const row3 = document.createElement('tr');
+    const row4 = document.createElement('tr');
 
-    const {symbols, dayHours, nightHours} = buildShiftCells(employee, month);
+    const {symbols, dayHours, nightHours, status} = buildShiftCells(employee, month);
 
     row1.innerHTML = `
-        <td rowspan="3" class="sticky-col">${employee.employee_name}</td>
-        <td rowspan="3">${roleName}</td>
-        <td rowspan="3">${employee.rank ?? ""}</td>
-        <td rowspan="3">${employee.tab_number}</td>
-        <td rowspan="3">${employee.work_method}</td>
+        <td rowspan="4" class="sticky-col">${employee.employee_name}</td>
+        <td rowspan="4">${roleName}</td>
+        <td rowspan="4">${employee.rank ?? ""}</td>
+        <td rowspan="4">${employee.tab_number}</td>
+        <td rowspan="4">${employee.work_method}</td>
         ${symbols}
-        <td rowspan="3">${employee.total_hours}</td>
-        <td rowspan="3">${employee.night_hours}</td>
-        <td rowspan="3">${employee.work_days}</td>
-        <td rowspan="3">${employee.travel_days}</td>
-        <td rowspan="3">${employee.fake_days}</td>
+        <td rowspan="4">${employee.total_hours}</td>
+        <td rowspan="4">${employee.night_hours}</td>
+        <td rowspan="4">${employee.work_days}</td>
+        <td rowspan="4">${employee.travel_days}</td>
+        <td rowspan="4">${employee.fake_days}</td>
     `;
     row2.innerHTML = dayHours;
     row3.innerHTML = nightHours;
+    row4.innerHTML = status;
 
-    return [row1, row2, row3];
+    return [row1, row2, row3, row4];
 }
 
 function renderTableHead(month, theadEl) {
