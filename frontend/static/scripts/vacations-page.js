@@ -30,6 +30,12 @@ const DOM = {
     },
     btnExport() {
         return document.querySelector('.export');
+    },
+    searchIcon() {
+        return document.querySelector('.search-icon');
+    },
+    inputSearch() {
+        return document.querySelector('.search');
     }
 }
 
@@ -403,8 +409,148 @@ async function initTableUI() {
     page.append(table);
 }
 
+function findEmployeeRowByTabNumber(tabNumber) {
+    const tbody = document.querySelector('tbody');
+    if (!tbody) return null;
+
+    const trs = tbody.querySelectorAll('tr');
+    for (const tr of trs) {
+        if (tr.dataset.tabNumber && String(tr.dataset.tabNumber).trim() === String(tabNumber).trim()) {
+            return tr;
+        }
+    }
+
+    return null;
+}
+
+function scrollToEmployeeRow(tr) {
+    tr.scrollIntoView({behavior: 'smooth', block: 'center'});
+
+    const originalBg = tr.style.backgroundColor;
+    tr.style.transition = 'background-color 0.3s ease';
+    tr.style.backgroundColor = 'var(--row-highlight, #fff3b0)';
+
+    setTimeout(() => {
+        tr.style.backgroundColor = originalBg;
+    }, 1200);
+}
+
+function createEmployeeSearchDropdown(inputSearch) {
+    if (!inputSearch) return null;
+
+    const dropdown = document.createElement('div');
+    dropdown.classList.add('employee-search-dropdown');
+    dropdown.hidden = true;
+    document.body.append(dropdown);
+
+    function positionDropdown() {
+        const rect = inputSearch.getBoundingClientRect();
+        dropdown.style.position = 'fixed';
+        dropdown.style.top = `${rect.bottom + 4}px`;
+        dropdown.style.left = `${rect.left}px`;
+        dropdown.style.minWidth = `${Math.max(rect.width, 280)}px`;
+    }
+
+    function renderResults(employees) {
+        dropdown.innerHTML = '';
+
+        if (!employees || employees.length === 0) {
+            dropdown.hidden = true;
+            return;
+        }
+
+        employees.forEach(emp => {
+            const item = document.createElement('div');
+            item.classList.add('employee-search-item');
+
+            const name = emp.full_name ?? '';
+            const tabNumber = emp.tab_number ?? '';
+
+            const info = document.createElement('div');
+            info.classList.add('employee-search-info');
+
+            const nameEl = document.createElement('div');
+            nameEl.classList.add('employee-search-name');
+            nameEl.textContent = name;
+
+            const tabEl = document.createElement('div');
+            tabEl.classList.add('employee-search-tab');
+            tabEl.textContent = `Таб. № ${tabNumber}`;
+
+            info.append(nameEl, tabEl);
+            item.append(info);
+
+            item.addEventListener('click', () => {
+                inputSearch.value = name;
+                dropdown.hidden = true;
+
+                const row = findEmployeeRowByTabNumber(tabNumber);
+                if (row) {
+                    scrollToEmployeeRow(row);
+                } else {
+                    console.warn(`Строка сотрудника с таб. № ${tabNumber} не найдена в таблице`);
+                }
+            });
+
+            dropdown.append(item);
+        });
+
+        positionDropdown();
+        dropdown.hidden = false;
+    }
+
+    async function search(query) {
+        if (!query.trim()) {
+            dropdown.hidden = true;
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.searchEmployees(encodeURIComponent(query.trim()))}`);
+            if (!response.ok) throw new Error(`Ошибка поиска сотрудников: ${response.status}`);
+            const employees = await response.json();
+            renderResults(employees);
+        } catch (error) {
+            console.error(error);
+            dropdown.hidden = true;
+        }
+    }
+
+    const debouncedSearch = debounce(search, 500);
+
+    inputSearch.addEventListener('input', () => {
+        debouncedSearch(inputSearch.value);
+    });
+
+    inputSearch.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') search(inputSearch.value);
+    });
+
+    const searchIcon = DOM.searchIcon();
+    if (searchIcon) {
+        searchIcon.addEventListener('click', () => search(inputSearch.value));
+    }
+
+    window.addEventListener('scroll', () => {
+        if (!dropdown.hidden) positionDropdown();
+    }, true);
+
+    document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target) && e.target !== inputSearch) {
+            dropdown.hidden = true;
+        }
+    });
+
+    return dropdown;
+}
+
 export async function init() {
     await initTableUI();
 
     attachExportVacationListener();
+
+    const inputSearch = DOM.inputSearch();
+    if (inputSearch) {
+        createEmployeeSearchDropdown(inputSearch);
+    }
 }
