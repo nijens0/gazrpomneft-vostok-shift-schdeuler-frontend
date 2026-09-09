@@ -405,24 +405,141 @@ function initModal() {
     dialog.appendChild(div);
 }
 
-function findEmployee() {
-    const table = DOM.table;
-    const trs = table.querySelectorAll('tbody tr');
+function debounce(fn, delay) {
+    let timeoutId;
+    return (...args) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => fn(...args), delay);
+    };
+}
 
-    const value = DOM.inputSearch.value.trim();
+function findEmployeeRowByTabNumber(tabNumber) {
+    const trs = DOM.tbody.querySelectorAll('tr');
 
-    for (let tr of trs) {
-        const fullName = tr.children[0].textContent.trim();
-        const tabNumber = tr.children[1].textContent.trim();
-
-        if ([fullName, tabNumber].includes(value)) {
-            tr.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center'
-            });
-            return;
+    for (const tr of trs) {
+        const tabCell = tr.children[1];
+        if (tabCell && tabCell.textContent.trim() === String(tabNumber).trim()) {
+            return tr;
         }
     }
+
+    return null;
+}
+
+function scrollToEmployeeRow(tr) {
+    tr.scrollIntoView({behavior: 'smooth', block: 'center'});
+
+    const originalBg = tr.style.backgroundColor;
+    tr.style.transition = 'background-color 0.3s ease';
+    tr.style.backgroundColor = 'var(--row-highlight, #fff3b0)';
+
+    setTimeout(() => {
+        tr.style.backgroundColor = originalBg;
+    }, 1200);
+}
+
+function createEmployeeSearchDropdown(inputSearch) {
+    const dropdown = document.createElement('div');
+    dropdown.classList.add('employee-search-dropdown');
+    dropdown.hidden = true;
+    document.body.append(dropdown);
+
+    function positionDropdown() {
+        const rect = inputSearch.getBoundingClientRect();
+        dropdown.style.position = 'fixed';
+        dropdown.style.top = `${rect.bottom + 4}px`;
+        dropdown.style.left = `${rect.left}px`;
+        dropdown.style.minWidth = `${Math.max(rect.width, 280)}px`;
+    }
+
+    function renderResults(employees) {
+        dropdown.innerHTML = '';
+
+        if (!employees || employees.length === 0) {
+            dropdown.hidden = true;
+            return;
+        }
+
+        employees.forEach(emp => {
+            const item = document.createElement('div');
+            item.classList.add('employee-search-item');
+
+            const name = emp.full_name ?? '';
+            const tabNumber = emp.tab_number ?? '';
+
+            const info = document.createElement('div');
+            info.classList.add('employee-search-info');
+
+            const nameEl = document.createElement('div');
+            nameEl.classList.add('employee-search-name');
+            nameEl.textContent = name;
+
+            const tabEl = document.createElement('div');
+            tabEl.classList.add('employee-search-tab');
+            tabEl.textContent = `Таб. № ${tabNumber}`;
+
+            info.append(nameEl, tabEl);
+            item.append(info);
+
+            item.addEventListener('click', () => {
+                inputSearch.value = name;
+                dropdown.hidden = true;
+
+                const row = findEmployeeRowByTabNumber(tabNumber);
+                if (row) {
+                    scrollToEmployeeRow(row);
+                } else {
+                    console.warn(`Строка сотрудника с таб. № ${tabNumber} не найдена в таблице`);
+                }
+            });
+
+            dropdown.append(item);
+        });
+
+        positionDropdown();
+        dropdown.hidden = false;
+    }
+
+    async function search(query) {
+        if (!query.trim()) {
+            dropdown.hidden = true;
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.searchEmployees(encodeURIComponent(query.trim()))}`);
+            if (!response.ok) throw new Error(`Ошибка поиска сотрудников: ${response.status}`);
+            const employees = await response.json();
+            renderResults(employees);
+        } catch (error) {
+            console.error(error);
+            dropdown.hidden = true;
+        }
+    }
+
+    const debouncedSearch = debounce(search, 500);
+
+    inputSearch.addEventListener('input', () => {
+        debouncedSearch(inputSearch.value);
+    });
+
+    inputSearch.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') search(inputSearch.value);
+    });
+
+    DOM.searchIcon.addEventListener('click', () => search(inputSearch.value));
+
+    window.addEventListener('scroll', () => {
+        if (!dropdown.hidden) positionDropdown();
+    }, true);
+
+    document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target) && e.target !== inputSearch) {
+            dropdown.hidden = true;
+        }
+    });
+
+    return dropdown;
 }
 
 export function init() {
@@ -434,10 +551,8 @@ export function init() {
     DOM.btnAddEmployee.addEventListener('click', () => {
         DOM.modal.showModal();
     });
-    DOM.inputSearch.addEventListener('keyup', (key) => {
-        if (key.key === 'Enter') findEmployee()
-    });
-    DOM.searchIcon.addEventListener('click', findEmployee);
+
+    createEmployeeSearchDropdown(DOM.inputSearch);
 
     getUsers().then(users => {
         renderTable(users);
