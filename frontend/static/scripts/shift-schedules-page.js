@@ -880,6 +880,10 @@ function getAddGroupButton() {
         if (!button) return;
 
         button.before(getGroupCard());
+        // Снимаем подсветку явно: клик может прийтись на вложенный svg/текст,
+        // а не на сам <button>, и общий clear-обработчик (attachLiveValidationClear)
+        // такой класс не найдёт и не снимет.
+        button.classList.remove('field-invalid');
     });
 
     return button;
@@ -1446,11 +1450,12 @@ function isDemandFilled(demand) {
     return (Number(demand.day) || 0) + (Number(demand.night) || 0) > 0;
 }
 
-/** Валидирует одну карточку роли: название, спрос, сотрудников (таб.№/ФИО). */
+/** Валидирует одну карточку роли: название, разряд, спрос, сотрудников (таб.№/ФИО). */
 function validateRoleCard(cardEl, silent) {
     const errors = [];
 
     const roleInput = cardEl.querySelector('[data-field="role-name"]');
+    const gradeSelect = cardEl.querySelector('[data-field="role-grade"]');
     const dayDemand = cardEl.querySelector('[data-demand="day"]');
     const nightDemand = cardEl.querySelector('[data-demand="night"]');
     const roleName = roleInput?.value.trim() ?? '';
@@ -1460,13 +1465,22 @@ function validateRoleCard(cardEl, silent) {
     markInvalid(roleInput, !roleNameFilled, silent);
     if (!roleNameFilled) errors.push('Не заполнено название роли');
 
+    const gradeFilled = (gradeSelect?.value ?? '') !== '';
+    markInvalid(gradeSelect, !gradeFilled, silent);
+    if (!gradeFilled) errors.push(`Роль "${roleLabel}": не выбран разряд`);
+
     const demand = {
         day: Number(dayDemand?.value ?? 0),
         night: Number(nightDemand?.value ?? 0),
     };
     const demandOk = isDemandFilled(demand);
+    // Подсвечиваем и сами инпуты, и их обёртку — рамка спроса визуально
+    // рисуется на .demand-input-container, а не на самом <input>, поэтому
+    // без класса на обёртке подсветка на спрос=0 не была заметна.
     markInvalid(dayDemand, !demandOk, silent);
     markInvalid(nightDemand, !demandOk, silent);
+    markInvalid(dayDemand?.closest('.demand-input-container'), !demandOk, silent);
+    markInvalid(nightDemand?.closest('.demand-input-container'), !demandOk, silent);
     if (!demandOk) errors.push(`Роль "${roleLabel}": спрос не заполнен (день и ночь равны 0)`);
 
     let validEmployeesCount = 0;
@@ -1523,10 +1537,12 @@ function validateGenerationForm(silent = false) {
             .forEach(card => errors.push(...validateRoleCard(card, silent)));
     }
 
+    // РСС (managersCard) в подсчёт групп не входит — она отображается всегда отдельно.
     const groupEls = document.querySelectorAll('.group-settings-container');
-    if (groupEls.length === 0) {
-        errors.push('Нужна хотя бы одна группа');
-    }
+    const hasGroups = groupEls.length > 0;
+    const addGroupButton = document.querySelector('.add-group-button');
+    markInvalid(addGroupButton, !hasGroups, silent);
+    if (!hasGroups) errors.push('Нужна хотя бы одна группа');
 
     groupEls.forEach(groupEl => {
         const nameInput = groupEl.querySelector('[data-field="group-name"]');
@@ -1615,11 +1631,18 @@ function attachDraftAutoSave(rootEl) {
     rootEl.addEventListener('click', debouncedSaveDraftState);
 }
 
-/** Живое enable/disable кнопки "Начать Генерацию" — без подсветки полей. */
-function updateGenerateButtonState() {
+/**
+ * Синхронизирует состояние кнопки "Начать Генерацию" с валидностью формы.
+ * highlight=true дополнительно подсвечивает невалидные поля классом .field-invalid
+ * (используется при входе на страницу, чтобы сразу было видно, чего не хватает —
+ * например, после восстановления черновика). Для живых проверок при каждом
+ * изменении поля используется highlight=false: подсветку в этом случае снимает
+ * attachLiveValidationClear, и заново её тут накидывать не нужно.
+ */
+function updateGenerateButtonState(highlight = false) {
     const btn = DOM.btnGenerate;
     if (!btn) return;
-    btn.disabled = validateGenerationForm(true).length > 0;
+    btn.disabled = validateGenerationForm(!highlight).length > 0;
 }
 
 /** Снимает подсветку ошибки с поля сразу, как только пользователь начал его исправлять. */
@@ -1627,9 +1650,9 @@ function attachLiveValidationClear(rootEl) {
     const clear = (e) => e.target.classList?.remove('field-invalid');
     rootEl.addEventListener('input', clear);
     rootEl.addEventListener('change', clear);
-    rootEl.addEventListener('input', updateGenerateButtonState);
-    rootEl.addEventListener('change', updateGenerateButtonState);
-    rootEl.addEventListener('click', updateGenerateButtonState);
+    rootEl.addEventListener('input', () => updateGenerateButtonState(false));
+    rootEl.addEventListener('change', () => updateGenerateButtonState(false));
+    rootEl.addEventListener('click', () => updateGenerateButtonState(false));
 }
 
 async function changeUItoChooseSchedule() {
@@ -1676,7 +1699,10 @@ async function changeUItoGenerateSchedule() {
 
         attachDraftAutoSave(content);
         attachLiveValidationClear(content);
-        updateGenerateButtonState();
+        // highlight=true: при заходе на страницу (в т.ч. после возврата с восстановленным
+        // черновиком) сразу подсвечиваем незаполненные поля, а не только состояние кнопки —
+        // иначе пользователю непонятно, почему кнопка заблокирована, если на вид всё заполнено.
+        updateGenerateButtonState(true);
 
         saveLastMode('generate');
     } catch (error) {
