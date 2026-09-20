@@ -58,7 +58,6 @@ const columns = [
     {key: 'senior', label: 'СТ. ОПЕРАТОР', align: 'center', attributes: '1'},
     {key: 'can_replace_boss', label: 'ЗАМ. НАЧАЛЬНИКА СМЕНЫ', align: 'center', attributes: '1'},
     {key: 'can_replace_senior', label: 'ЗАМ. СТ. ОПЕРАТОРА', align: 'center', attributes: '1'},
-    {key: 'actions_with_employee', label: 'ДЕЙСТВИЯ С СОТРУДНИКОМ'},
 ];
 
 function renderTableHead() {
@@ -93,37 +92,22 @@ async function getUsers() {
 function getTableRow(user) {
     const row = document.createElement('tr');
 
-    function createCell(colIndex, value) {
-        const col = columns[colIndex];
+    columns.forEach((col, index) => {
         const td = document.createElement('td');
 
         td.dataset.key = col.key;
         td.classList.add('editable');
 
-        if (colIndex === 0) td.classList.add('sticky-col');
+        if (index === 0) td.classList.add('sticky-col');
         if (col.align) td.classList.add(`cell-${col.align}`);
         if (col.type) td.classList.add(`cell-${col.type}`);
         if (col.attributes) td.dataset.attributes = col.attributes;
 
+        const value = col.attributes ? user.attributes?.[col.key] : user[col.key];
         td.textContent = typeof value === 'boolean' ? (value ? '1' : '0') : (value ?? '');
-        return td;
-    }
 
-    for (let i = 0; i < columns.length - 5; i++) {
-        row.appendChild(createCell(i, user[columns[i].key]));
-    }
-
-    for (let i = 12; i < 16; i++) {
-        row.appendChild(createCell(i, user.attributes?.[columns[i].key]));
-    }
-
-
-    const td = document.createElement('td');
-    const editContainer = document.createElement('div');
-    editContainer.classList.add('edit-container');
-    resetEditContainer(editContainer);
-    td.appendChild(editContainer);
-    row.appendChild(td);
+        row.appendChild(td);
+    });
 
     return row;
 }
@@ -146,16 +130,6 @@ function exportEmployeesTableListener() {
 
     try {
         const worksheet = XLSX.utils.table_to_sheet(table);
-
-        Object.keys(worksheet).forEach(key => {
-            if (key.startsWith('Q')) {
-                delete worksheet[key];
-            }
-        });
-
-        if (worksheet['!ref']) {
-            worksheet['!ref'] = worksheet['!ref'].replace(/:Q/, ':P');
-        }
 
         const workbook = XLSX.utils.book_new();
 
@@ -216,118 +190,6 @@ function importEmployeesTableListener() {
     fileInput.addEventListener('change', importEmployeesTable);
 }
 
-function editTableListeners(e, backup) {
-    const target = e.target;
-
-    if (target.classList.contains("edit-button")) {
-        if (DOM.table.classList.contains("edits")) return;
-        backup.length = 0
-        DOM.table.classList.add('edits')
-
-        const tr = target.closest('tr');
-        const cells = tr.querySelectorAll('.editable');
-
-        cells.forEach(td => {
-            let cell = td.innerHTML.trim();
-            backup.push(cell)
-            td.innerHTML = `<input class="table-input" placeholder="${backup.at(-1)}" value="${backup.at(-1)}">`
-        })
-
-        const editContainer = target.closest('.edit-container')
-        editContainer.innerHTML =
-            `<svg class="apply-button" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 50 50" fill="#64748B" stroke="#64748B" stroke-width="1.5" stroke-linejoin="round">
-                        <path d="M 41.9375 8.625 C 41.273438 8.648438 40.664063 9 40.3125 9.5625 L 21.5 38.34375 L 9.3125 27.8125 C 8.789063 27.269531 8.003906 27.066406 7.28125 27.292969 C 6.5625 27.515625 6.027344 28.125 5.902344 28.867188 C 5.777344 29.613281 6.078125 30.363281 6.6875 30.8125 L 20.625 42.875 C 21.0625 43.246094 21.640625 43.410156 22.207031 43.328125 C 22.777344 43.242188 23.28125 42.917969 23.59375 42.4375 L 43.6875 11.75 C 44.117188 11.121094 44.152344 10.308594 43.78125 9.644531 C 43.410156 8.984375 42.695313 8.589844 41.9375 8.625 Z"/>
-                     </svg>
-                     <svg class="cancel-button" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 50 50" fill="#64748B" stroke="#64748B" stroke-width="1.5" stroke-linejoin="round">
-                        <path d="M 9.15625 6.3125 L 6.3125 9.15625 L 22.15625 25 L 6.21875 40.96875 L 9.03125 43.78125 L 25 27.84375 L 40.9375 43.78125 L 43.78125 40.9375 L 27.84375 25 L 43.6875 9.15625 L 40.84375 6.3125 L 25 22.15625 Z"/>
-                     </svg>
-                    `
-    } else if (target.classList.contains("apply-button")) {
-        backup.length = 0
-
-        const tr = target.closest('tr');
-        const cells = tr.querySelectorAll('.editable');
-
-        const updateEmployee = {};
-        let tabNumber;
-        cells.forEach(td => {
-            const input = td.querySelector('input');
-            const key = td.dataset.key;
-            const attribute = td.dataset.attributes;
-            const value = input.value.trim();
-
-            if (key === "tab_number") tabNumber = value;
-            if (input.placeholder !== value && !attribute) updateEmployee[key] = value;
-            if (attribute && value !== "") {
-                updateEmployee[key] = value === "1" ? true : value === "0" ? false: value;
-            }
-
-            td.textContent = value;
-        });
-        console.log(`${API_BASE_URL}${API_ENDPOINTS.updateEmployee(tabNumber)}`)
-        console.log(updateEmployee);
-
-        const updateEmployeeJSON = JSON.stringify(updateEmployee);
-        fetch(`${API_BASE_URL}${API_ENDPOINTS.updateEmployee(tabNumber)}`, {
-            method: "PATCH",
-            headers: {'Content-Type': 'application/json'},
-            body: updateEmployeeJSON
-        }).then(response => {
-            if (!response.ok) {
-                throw new Error(`Ошибка сервера: ${response.status}`);
-            }
-            alert('Сотрудник успешно обновлён');
-        }).catch(error => {
-            alert(`Не удалось обновить данные: ${error.message}`);
-        });
-
-        const editContainer = target.closest('.edit-container')
-        resetEditContainer(editContainer);
-
-        DOM.table.classList.remove('edits')
-    } else if (target.classList.contains("cancel-button")) {
-
-        const tr = target.closest('tr');
-        const cells = tr.querySelectorAll('.editable');
-
-        cells.forEach((td, index) => {
-            td.textContent = backup[index]
-        });
-
-        const editContainer = target.closest('.edit-container');
-        resetEditContainer(editContainer)
-
-        DOM.table.classList.remove('edits')
-    } else if (target.classList.contains("delete-button")) {
-        const tr = target.closest('tr');
-        const td = tr.querySelector('[data-key="tab_number"]');
-        const tabNumber = td.textContent.trim();
-
-        fetch(`${API_BASE_URL}${API_ENDPOINTS.deleteEmployee(tabNumber)}`, {
-            method: "DELETE"
-        }).then(response => {
-            if (!response.ok) {
-                throw new Error(`Ошибка сервера: ${response.status}`);
-            }
-            alert('Сотрудник успешно удалён');
-        }).catch(error => {
-            alert(`Не удалось обновить данные: ${error.message}`);
-        });
-
-        DOM.employeesStats.textContent = `${+DOM.employeesStats.textContent - 1}`
-        tr.remove();
-    }
-
-
-}
-
-function resetEditContainer(editContainer) {
-    editContainer.innerHTML =
-        `<img class="edit-button" src="/static/icons/pencil.png" alt="Редактирование">
-         <img class="delete-button" src="/static/icons/bin.png" alt="Удалить">
-        `
-}
-
 function initModal() {
     const modal = DOM.modal;
     const dialog = DOM.dialog;
@@ -340,8 +202,7 @@ function initModal() {
     const employeeData = document.createElement('div');
     employeeData.classList.add('dialog-employee-data')
     dialog.appendChild(employeeData);
-    columns.forEach((col, index) => {
-        if (index === columns.length - 1) return;
+    columns.forEach((col) => {
         const input = document.createElement('input');
         input.classList.add('table-input');
         input.dataset.key = col.key;
@@ -542,9 +403,237 @@ function createEmployeeSearchDropdown(inputSearch) {
     return dropdown;
 }
 
+let contextMenu = null;
+let menuCell = null;   // ячейка, на которой открыли меню
+let editState = null;  // { td, oldValue, input, saving }
+
+/* ---------- Контекстное меню ---------- */
+
+function createContextMenu() {
+    const menu = document.createElement('div');
+    menu.classList.add('context-menu');
+    menu.hidden = true;
+    menu.innerHTML = `
+        <button type="button" class="context-menu-item" data-action="delete">
+            <img src="/static/icons/bin.png" alt="">
+            <span>Удалить</span>
+        </button>
+        <button type="button" class="context-menu-item" data-action="edit">
+            <img src="/static/icons/pencil.png" alt="">
+            <span>Редактировать</span>
+        </button>`;
+    document.body.appendChild(menu);
+    return menu;
+}
+
+function showContextMenu(x, y, td) {
+    menuCell = td;
+    contextMenu.hidden = false;
+
+    // не даём меню вылезти за экран
+    const {offsetWidth: w, offsetHeight: h} = contextMenu;
+    contextMenu.style.left = `${Math.max(8, Math.min(x, window.innerWidth - w - 8))}px`;
+    contextMenu.style.top = `${Math.max(8, Math.min(y, window.innerHeight - h - 8))}px`;
+}
+
+function hideContextMenu() {
+    if (!contextMenu) return;
+    contextMenu.hidden = true;
+    menuCell = null;
+}
+
+function initContextMenu() {
+    contextMenu = createContextMenu();
+
+    DOM.table.addEventListener('contextmenu', (e) => {
+        // внутри редактируемой ячейки оставляем нативное меню (копировать/вставить)
+        if (e.target.closest('.cell-edit')) return;
+
+        const td = e.target.closest('tbody td.editable');
+        if (!td) {
+            hideContextMenu();
+            return;
+        }
+
+        e.preventDefault();
+        showContextMenu(e.clientX, e.clientY, td);
+    });
+
+    contextMenu.addEventListener('click', (e) => {
+        const item = e.target.closest('[data-action]');
+        if (!item || !menuCell) return;
+
+        const td = menuCell;
+        hideContextMenu();
+
+        if (item.dataset.action === 'edit') startEdit(td);
+        if (item.dataset.action === 'delete') deleteRow(td.closest('tr'));
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!contextMenu.contains(e.target)) hideContextMenu();
+    });
+    document.addEventListener('contextmenu', (e) => {
+        if (!DOM.table.contains(e.target)) hideContextMenu();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') hideContextMenu();
+    });
+    window.addEventListener('scroll', hideContextMenu, true);
+    window.addEventListener('resize', hideContextMenu);
+}
+
+/* ---------- Редактирование одной ячейки ---------- */
+
+const ICON_CHECK = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>`;
+const ICON_CROSS = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>`;
+
+function startEdit(td) {
+    // одновременно редактируем только одну ячейку
+    if (editState) {
+        editState.input.focus();
+        return;
+    }
+
+    const oldValue = td.textContent.trim();
+
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('cell-edit');
+
+    const input = document.createElement('input');
+    input.classList.add('table-input');
+    input.value = oldValue;
+
+    const saveBtn = document.createElement('button');
+    saveBtn.type = 'button';
+    saveBtn.title = 'Сохранить';
+    saveBtn.classList.add('cell-edit-btn', 'cell-edit-save');
+    saveBtn.innerHTML = ICON_CHECK;
+    saveBtn.addEventListener('click', saveEdit);
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.title = 'Отменить';
+    cancelBtn.classList.add('cell-edit-btn', 'cell-edit-cancel');
+    cancelBtn.innerHTML = ICON_CROSS;
+    cancelBtn.addEventListener('click', cancelEdit);
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') saveEdit();
+        if (e.key === 'Escape') cancelEdit();
+    });
+
+    wrapper.append(input, saveBtn, cancelBtn);
+    td.textContent = '';
+    td.appendChild(wrapper);
+
+    editState = {td, oldValue, input, saving: false};
+    input.focus();
+    input.select();
+}
+
+function cancelEdit() {
+    if (!editState || editState.saving) return;
+
+    editState.td.textContent = editState.oldValue;
+    editState = null;
+}
+
+async function saveEdit() {
+    if (!editState || editState.saving) return;
+
+    const {td, oldValue, input} = editState;
+    const key = td.dataset.key;
+    const isAttribute = Boolean(td.dataset.attributes);
+    const value = input.value.trim();
+
+    if (value === oldValue) {
+        cancelEdit();
+        return;
+    }
+
+    if (isAttribute && value !== '0' && value !== '1') {
+        alert('В этом столбце допустимы только значения 0 и 1');
+        input.focus();
+        return;
+    }
+
+    // таб. номер берём "старый": по нему сотрудник ищется на сервере
+    const tr = td.closest('tr');
+    const tabNumber = key === 'tab_number'
+        ? oldValue
+        : tr.querySelector('[data-key="tab_number"]').textContent.trim();
+
+    // как в старом коде: изменённое поле + все непустые атрибуты строки
+    const payload = {};
+    tr.querySelectorAll('td.editable').forEach(cell => {
+        const cellKey = cell.dataset.key;
+        const cellValue = cell === td ? value : cell.textContent.trim();
+
+        if (cell.dataset.attributes) {
+            if (cellValue !== '') {
+                payload[cellKey] = cellValue === '1' ? true : cellValue === '0' ? false : cellValue;
+            }
+        } else if (cell === td) {
+            payload[cellKey] = cellValue;
+        }
+    });
+    console.log('PATCH', tabNumber, payload);
+
+    editState.saving = true;
+    input.disabled = true;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.updateEmployee(tabNumber)}`, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) throw new Error(`Ошибка сервера: ${response.status}`);
+
+        td.textContent = value;
+        editState = null;
+    } catch (error) {
+        // остаёмся в режиме редактирования: можно повторить или отменить
+        editState.saving = false;
+        input.disabled = false;
+        input.focus();
+        alert(`Не удалось обновить данные: ${error.message}`);
+    }
+}
+
+/* ---------- Удаление строки ---------- */
+
+async function deleteRow(tr) {
+    if (editState && tr.contains(editState.td)) {
+        cancelEdit();
+        if (editState) return; // идёт сохранение, подождём
+    }
+
+    const tabNumber = tr.querySelector('[data-key="tab_number"]').textContent.trim();
+    const name = tr.querySelector('[data-key="full_name"]').textContent.trim();
+
+    if (!confirm(`Удалить сотрудника «${name}» (таб. № ${tabNumber})?`)) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.deleteEmployee(tabNumber)}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) throw new Error(`Ошибка сервера: ${response.status}`);
+
+        tr.remove();
+        DOM.employeesStats.textContent = `${+DOM.employeesStats.textContent - 1}`;
+    } catch (error) {
+        alert(`Не удалось удалить сотрудника: ${error.message}`);
+    }
+}
+
 export function init() {
     initModal();
     renderTableHead();
+    initContextMenu();
 
     DOM.btnImport.addEventListener('click', importEmployeesTableListener);
     DOM.btnExport.addEventListener('click', exportEmployeesTableListener);
@@ -554,12 +643,5 @@ export function init() {
 
     createEmployeeSearchDropdown(DOM.inputSearch);
 
-    getUsers().then(users => {
-        renderTable(users);
-
-        let backup = []
-        DOM.table.addEventListener("click", (e) => {
-            editTableListeners(e, backup)
-        });
-    });
+    getUsers().then(renderTable);
 }
